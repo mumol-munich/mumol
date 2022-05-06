@@ -1,0 +1,105 @@
+{% extends "ui_new/base.html" %}
+{% load crispy_forms_tags %}
+
+{% block title %}
+AddGeneSpecifications - {{title}}
+{% endblock %}
+
+
+{% block body %}
+
+{% include 'ui_new/admin/projects/projects_link.html' %}
+{% include 'ui_new/admin/attributes/method_add.html' %}
+{% include 'ui_new/admin/attributes/gene_add.html' %}
+{% include 'ui_new/admin/attributes/datapointtype_add.html' %}
+
+{% include 'ui_new/messages.html' %}
+
+<div class="container-fluid">
+    <div class="row">
+        <div class="col">
+            <!-- stepper -->
+            {% include 'ui_new/admin/gene_specifications/gene_specifications_stepper.html' %}
+            <!-- stepper -->
+        </div>
+        <!-- <div class="col">
+            asdfasd
+            {{genespecs}}
+        </div> -->
+    </div>
+    <div class="row mt-1 mb-4 pb-4">
+        <div class="col-md-12 text-center">
+            <!-- <button class="btn custom-outline-color1-btn btn-sm" id="custom_previous_btn">Previous</button> -->
+            <button class="btn custom-button-color2" id="custom_cancel_btn"
+                onClick="localStorage.removeItem('gene_specs');location.reload();">Clear</button>
+            <button class="btn custom-button-color1" id="custom_next_btn"
+                onClick="GeneSpecificationSetStorage('{{project_pk}}', {{genespecs|safe}}, mutation_status_tab = false, mutation_status_tab_new = false, next_btn = true);">Next</button>
+            <button class="btn custom-button-color4" id="custom_submit_btn" data-checkvar="false" onClick="" disabled>Submit</button>
+        </div>
+    </div>
+</div>
+
+<form method="post" action="{% url 'gene_specifications_add' project_pk %}">
+    {% csrf_token %}
+    <input type="hidden" id="gene_specs" name="gene_specs" value="">
+    <button id="custom_submit_btn2" type="submit" style="display:none;" disabled></button>
+</form>
+
+<script type="text/javascript">
+$(document).ready(function(){
+
+    HighlightProjectActive("{{project_pk}}");
+    
+    
+    
+    // removing empty option
+    // $("#id_gene").attr("multiple", true);
+    // $("#id_gene option[value='']").each(function () {
+    //     $(this).remove();
+    // });
+    
+   
+    
+    // Select2Module("#id_method", "75%", "Select Analysis method", true);
+    // Select2Module("#id_gene", "75%", "Select Gene", false);
+    $(".return_page").val(window.location.pathname);
+    GeneSpecificationGetStorage("{{project_pk}}");
+    
+    PreventEnterKeyFn();
+    
+    
+    $("#custom_submit_btn").on("click", function () {
+        $("#custom_next_btn").click();
+        // check before submitting
+        // let gene_specs = JSON.parse(localStorage.getItem("gene_specs"));
+        // let checkvar = false;
+        // $.each(gene_specs.mutation_status_dict, function (key, value) {
+        //     if (value.dpts.length > 0) {
+        //         checkvar = true;
+        //     } else {
+        //         checkvar = false;
+        //     }
+        // });
+        // if (checkvar) {
+        //     $("#gene_specs").val(localStorage.getItem("gene_specs"));
+        //     $("#custom_submit_btn2").prop("disabled", false).click();
+        // } else {
+        //     alert("Please select at least one datapoint type per mutation status");
+        //     return;
+        // }
+        $("#gene_specs").val(localStorage.getItem("gene_specs"));
+        $("#custom_submit_btn2").prop("disabled", false).click();
+    });
+    
+    // datapoints add button
+    CustomDptAddBtn("gene_specs");
+    
+    if(localStorage.getItem('gene_specs')) {
+        $("#custom_datapointtype_rcmd_switch").prop("disabled", false);
+    }
+    
+});
+    
+</script>
+
+{% endblock %}

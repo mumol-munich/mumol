@@ -1,0 +1,40 @@
+{% extends "ui_new/base.html" %}
+
+{% block title %}
+Patient - {{title}}
+{% endblock %}
+
+{% block body %}
+
+{% include 'ui_new/user/projects/projects_link.html' %}
+
+{% include 'ui_new/user/breadcrumbs/breadcrumbs.html' %}
+
+{% include 'ui_new/user/patients/patient_input.html' %}
+
+{% include 'ui_new/messages.html' %}
+
+<div class="container">
+    <div class="row">
+        <div class="col custom-bg-color2 p-3 mx-2">
+            <div class="p-2 bg-white h-100">
+                {% include 'ui_new/user/samples/sample_gene_analysis.html' %}
+            </div>
+        </div>
+        <div class="col custom-bg-color2 p-3 mx-2">
+            <div class="p-2 bg-white h-100">
+                {% include 'ui_new/user/samples/sample_chipset_analysis.html' %}
+            </div>
+        </div>
+    </div>
+</div>
+
+
+
+<script type="text/javascript">
+    $(document).ready(function(){
+        $(".return_page").val(window.location.pathname);
+        HighlightProjectActive("{{project_pk}}");
+    });
+</script>
+{% endblock %}

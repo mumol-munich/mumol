@@ -1,0 +1,95 @@
+{% load filters %}
+
+{% include 'ui_new/user/analysis/gene_analysis_remove.html' %}
+
+<table id="geneanalysis_table" class="table table-bordered" cellspacing="0" width="100%">
+    <thead>
+        <tr>
+            <th class="th-sm"></th>
+            <th class="th-sm">pk</th>
+            <th class="th-sm">Specification</th>
+            <th class="th-sm">Result</th>
+            <th class="th-sm">Data Points</th>
+            <th class="th-sm">Project Specific ID</th>
+            <th class="th-sm">Patient</th>
+            <th class="th-sm">Sample</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for geneanalysis in geneanalyses %}
+        <tr>
+            <td></td>
+            <td>{{geneanalysis.pk}}</td>
+            <td>{{geneanalysis.specification|gene_specification_link }}</td>
+            <td><a class="btn-link text-primary" href="{% url 'analysis_genes_add_remove' geneanalysis.sample.pk %}?genespec={{geneanalysis.specification_id}}&return=geneanalysis_overview"><u>{{geneanalysis.specification.get_name}}</u></a></td>
+            <td>{{geneanalysis.specification.specdpts_specification.count}}</td>
+            <td>{{'patient'|set_icons}}<a class="btn-link text-primary" href="{% url 'patient_view_user' geneanalysis.sample.projectid_id %}"><u>{{geneanalysis.sample.projectid.projectid}}</u></a></td>
+            <td>{{geneanalysis.sample.projectid.get_name}}</td>
+            <td>{{'sample'|set_icons}}<a class="btn-link text-primary" href="{% url 'sample_view_user' geneanalysis.sample_id %}"><u>{{geneanalysis.sample.get_samplename}}</u></a></td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+
+<script type="text/javascript">
+
+$(document).ready(function(){
+
+    mytable = $("#geneanalysis_table").DataTable({
+        dom: "<'row'<'col-sm-12 col-md-5'B><'col-sm-12 col-md-2'l><'col-sm-12 col-md-5'f>>" + "<'row'<'col-sm-12'tr>>" + "<'row'<'col-sm-12 col-md-5'i><'col-sm-12 col-md-7'p>>",
+        buttons: [
+            { extend: 'selectNone', attr: { id: 'custom_selectnone_btn', class: 'btn btn-sm custom-button-color2' } },
+            { text: 'Delete', attr: { id: 'custom_geneanalysis_delete_btn', 'data-toggle': 'modal', 'data-target': '#remove_geneanalysis', class: 'btn btn-sm custom-button-color3'}},
+        ],
+        pagingType: "full_numbers",
+        lengthMenu: [
+            [10, 25, 50, -1],
+            [10, 25, 50, "All"]
+        ],
+        columnDefs: [{
+            orderable: false,
+            className: 'select-checkbox select-checkbox-all',
+            targets: 0
+        },
+        {
+            targets: 1,
+            visible: false,
+        }],
+        select: {
+            style: 'multi',
+            selector: 'td:first-child'
+        },
+
+    });
+
+    // delete button
+    mytable.button("#custom_geneanalysis_delete_btn").enable(false);
+    mytable.on("select deselect", function(){
+        let selectedRows = mytable.rows({selected: true});
+        mytable.button("#custom_geneanalysis_delete_btn").enable(selectedRows.count() > 0);
+        let pkval = [];
+        $.each(selectedRows.data(), function(i, val){
+            if(val[1] !== "") {
+                pkval.push(val[1]) // pushing hidden pk value in column 2: index 1
+            }
+        });
+        if(pkval.length <= 0) {
+            pkval = "";
+        }
+        
+        $("#geneanalysis_pks").val(pkval);
+    });
+    $("#custom_geneanalysis_delete_btn").on("click", function(){
+        let geneanalysis_pks = $("#geneanalysis_pks").val();
+        if (geneanalysis_pks) {
+            geneanalysis_pks = geneanalysis_pks.split(',').length;
+        } else {
+            geneanalysis_pks = geneanalysis_pks.length;
+        }
+        $('#custom_selected_geneanalysis_count_span').html(geneanalysis_pks);
+    });
+
+    
+});
+
+</script>

@@ -1,0 +1,27 @@
+{% extends "ui_new/base.html" %}
+
+{% block title %}
+ChipsetAnalysis - {{title}}
+{% endblock %}
+
+{% block body %}
+
+{% include 'ui_new/user/projects/projects_link.html' %}
+
+{% include 'ui_new/user/breadcrumbs/breadcrumbs.html' %}
+
+{% include 'ui_new/messages.html' %}
+
+{% include 'ui_new/user/analysis/chipset_analysis_overview_table.html' %}
+
+
+<script>
+    $(document).ready(function(){
+        
+        $(".return_page").val(window.location.pathname);
+        HighlightProjectActive("{{project_pk}}");
+        
+    });
+</script>
+
+{% endblock %}

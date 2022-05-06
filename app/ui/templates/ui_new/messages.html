@@ -1,0 +1,14 @@
+<div class="container mt-4 imessage">
+    {% for message in messages %}
+    <div class="alert {% if message.tags %}alert-{% if message.level == DEFAULT_MESSAGE_LEVELS.ERROR %}danger{% else %}{{ message.tags }}{% endif %}{% endif %}"
+    role="alert">{{ message }}</div>
+
+    <script>
+        window.setTimeout(function() {
+            $(".imessage").fadeTo(500, 0).slideUp(500, function(){
+                $(this).remove(); 
+            });
+        }, 4000);
+    </script>
+    {% endfor %}
+</div>

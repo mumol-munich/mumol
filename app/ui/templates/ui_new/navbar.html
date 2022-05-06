@@ -1,0 +1,88 @@
+{% load static %}
+{% load filters %}
+<!--Navbar-->
+<!-- <nav class="navbar fixed-top navbar-expand-lg navbar-dark scrolling-navbar custom-color-color1 darken-2"> -->
+<nav class="navbar fixed-top navbar-expand-lg navbar-dark scrolling-navbar custom-color-color1">
+
+    <!-- Navbar brand -->
+    <a class="navbar-brand" href="{% url 'index' %}">
+        <!-- <img src="{% static 'images/biology-2024773_960_720.png' %}" height="20px" alt="" class=""> -->
+        <strong>{{nav_brand}}</strong>
+        <!-- <img src="{% static 'images/biology-2024773_960_720.png' %}" height="20px" alt="" class=""></a> -->
+    <!-- <img src="{% static 'images/biology-2024773_960_720.png' %}" height="20px" alt="" class=""> -->
+    </a>
+
+    <!-- Collapse button -->
+    <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#custom_navbar_id"
+        aria-controls="custom_navbar_id" aria-expanded="false" aria-label="Toggle navigation">
+        <span class="navbar-toggler-icon"></span>
+    </button>
+
+    <!-- Collapsible content -->
+    <div class="collapse navbar-collapse" id="custom_navbar_id">
+
+        <!-- Links -->
+        <ul class="navbar-nav mr-auto">
+            <!-- <li class="nav-item active">
+                <a class="nav-link" href="{% url 'index' %}">Home
+                    <span class="sr-only">(current)</span>
+                </a>
+            </li> -->
+
+            {% if user.is_authenticated %}
+            <li class="nav-item">
+                <a class="nav-link" href="{% url 'projects_view_user' %}?project_redirect=true">Home
+                    <span class="sr-only">(current)</span>
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" href="{% url 'projects_view_user' %}?project_redirect=false">Query</a>
+            </li>
+            {% if user.profile.is_admin %}
+            <li class="nav-item">
+                <a class="nav-link" href="{% url 'projects_view' %}">Administration</a>
+            </li>
+            <!-- Dropdown -->
+            <li class="nav-item dropdown">
+                <a class="nav-link dropdown-toggle" id="navbarDropdownMenuLink" data-toggle="dropdown"
+                  aria-haspopup="true" aria-expanded="false"></a>
+                <div class="dropdown-menu dropdown-primary" aria-labelledby="navbarDropdownMenuLink">
+                  <a class="dropdown-item" href="{% url 'admin_attributes_methods' %}">{{'method'|set_icons}}Methods</a>
+                  <a class="dropdown-item" href="{% url 'admin_attributes_genes' %}">{{'gene'|set_icons}}Genes</a>
+                  <a class="dropdown-item" href="{% url 'admin_attributes_specifications' %}">{{'specification'|set_icons}}Specifications</a>
+                  <a class="dropdown-item" href="{% url 'admin_attributes_datapointtypes' %}">{{'datapoint'|set_icons}}Datapoint Types</a>
+                  <a class="dropdown-item" href="{% url 'index' %}">Users</a>
+                </div>
+            </li>
+            {% endif %}
+            {% endif %}
+
+        </ul>
+        <ul class="navbar-nav ml-auto">
+            <!-- <img src="{% static 'images/IBE-LMU_Siegel_grün.png' %}" height="40" alt="DKTK" class="white mr-3"> -->
+            <!-- <img src="{% static 'images/ibe-logo-neu.png' %}" height="40" alt="DKTK" class="white mr-3">
+            <img src="{% static 'images/CCCM Logo_mittig.jpg' %}" height="40" alt="DKTK" class=" mr-3">
+            <img src="{% static 'images/dktk.JPG' %}" height="40" alt="DKTK" class=" mr-3"> -->
+            {% if user.is_authenticated %}
+            <li class="nav-item">
+                <a class="nav-link disabled">{{user}}</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" href="{% url 'logout' %}">Logout</a>
+            </li>
+            {% else %}
+            <li class="nav-item">
+                <a class="nav-link" href="{% url 'registration' %}">Register</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" href="{% url 'login' %}">Login</a>
+            </li>
+            {% endif %}
+        </ul>
+        <!-- Links -->
+
+    </div>
+    <!-- Collapsible content -->
+
+</nav>
+<!--/.Navbar-->

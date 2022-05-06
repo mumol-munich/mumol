@@ -1,0 +1,110 @@
+{% extends "ui_new/base.html" %}
+{% load filters %}
+
+{% block title %}
+Genes - {{title}}
+{% endblock %}
+
+{% block body %}
+
+{% include 'ui_new/admin/projects/projects_link.html' %}
+{% include 'ui_new/admin/attributes/genes_remove.html' %}
+{% include 'ui_new/admin/attributes/gene_add.html' %}
+
+{% include 'ui_new/user/breadcrumbs/breadcrumbs.html' %}
+
+{% include 'ui_new/messages.html' %}
+
+<div class="container">
+    <div class="p-3">
+        <table id="genes_table" class="table table-bordered" cellspacing="0" width="100%">
+            <thead>
+                <tr>
+                    <th class="th-sm"></th>
+                    <th class="th-sm">pk</th>
+                    <th class="th-sm">Name</th>
+                    <th class="th-sm">Associated Specifications</th>
+                    <th class="th-sm">Associated Methods</th>
+                    <th class="th-sm">Associated Projects</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for gene in genes %}
+                <tr>
+                    <td></td>
+                    <td>{{gene.pk}}</td>
+                    <td><a class="btn-link" href="{% url 'admin_attributes_gene' gene.pk %}">{{'gene'|set_icons }}{{gene.name}}</a></td>
+                    <td>{{gene.specification_gene.count}}</td>
+                    <td>{{gene|gene_info:'methods'}}</td>
+                    <td>{{gene|gene_info:'projects'}}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<script type="text/javascript">
+$(document).ready(function(){
+
+    $(".return_page").val(window.location.pathname);
+
+    mytable = $("#genes_table").DataTable({
+        dom: "<'row'<'col-sm-12 col-md-5'B><'col-sm-12 col-md-2'l><'col-sm-12 col-md-5'f>>" + "<'row'<'col-sm-12'tr>>" + "<'row'<'col-sm-12 col-md-5'i><'col-sm-12 col-md-7'p>>",
+        buttons: [
+            { extend: 'selectNone', attr: { id: 'custom_selectnone_btn', class: 'btn btn-sm custom-button-color2' } },
+            { text: 'Add', attr: { id: 'custom_gene_add_btn', 'data-toggle': 'modal', 'data-target': '#add_gene', class: 'btn btn-sm custom-button-color2'}},
+            { text: 'Delete', attr: { id: 'custom_gene_delete_btn', 'data-toggle': 'modal', 'data-target': '#remove_genes', class: 'btn btn-sm custom-button-color3'}},
+        ],
+        pagingType: "full_numbers",
+        lengthMenu: [
+            [10, 25, 50, -1],
+            [10, 25, 50, "All"]
+        ],
+        columnDefs: [{
+            orderable: false,
+            className: 'select-checkbox select-checkbox-all',
+            targets: 0
+        },
+        {
+            targets: 1,
+            visible: false,
+        }],
+        select: {
+            style: 'multi',
+            selector: 'td:first-child'
+        },
+    });
+
+    // delete button
+    mytable.button("#custom_gene_delete_btn").enable(false);
+    mytable.on("select deselect", function(){
+        let selectedRows = mytable.rows({selected: true});
+        mytable.button("#custom_gene_delete_btn").enable(selectedRows.count() > 0);
+        let pkval = [];
+        $.each(selectedRows.data(), function(i, val){
+            if(val[1] !== "") {
+                pkval.push(val[1]) // pushing hidden pk value in column 2: index 1
+            }
+        });
+        if(pkval.length <= 0) {
+            pkval = "";
+        }
+        
+        $("#gene_pks").val(pkval);
+    });
+
+    $("#custom_gene_delete_btn").on("click", function(){
+        let gene_pks = $("#gene_pks").val();
+        if (gene_pks) {
+            gene_pks = gene_pks.split(',').length;
+        } else {
+            gene_pks = gene_pks.length;
+        }
+        $('#custom_selected_genes_count_span').html(gene_pks);
+    });
+
+});
+</script>
+
+{% endblock %}

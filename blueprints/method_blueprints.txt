@@ -1,0 +1,7 @@
+# method name	Datapoint name (should already exist)
+Method	Datapoints
+FISH	"Exon,Manufacturer,Phenotype,Kit,SOP-Version,Positive_Tumorcells,Polysome,Target,CEN_Signals,Target_Signals"
+Fasttrack	"Exon,Manufacturer,Phenotype,Assay,SOP-Version,Change_DNA,Change_Protein"
+IHC	"Exon,Manufacturer,Phenotype,Antibody,SOP-Version,Positive_Tumorcells,IHC-Classification,ImmuneCells,Exon,Manufacturer,Phenotype,Kit,SOP-Version,Positive_Tumorcells,Polysome,Target,CEN_Signals,Target_Signals"
+ISH	"Exon,Manufacturer,Phenotype,Kit,SOP-Version,Positive_Tumorcells,Polysome ,Target,CEN_Signals,Target_Signals"
+NGS	"Exon,Manufacturer,Phenotype,SOP-Version,Panel_version,Panel_name,Change_DNA,Change_Protein,Allelic_Fraction,Coverage,Genome_build,Chromosome,Start_Position,Stop_Position,Ref_Allele,Alt_Allele,Reads_Ref_Allele,Reads_Alt_Allele"

@@ -1,0 +1,406 @@
+{% extends "ui_new/base.html" %}
+{% load filters %}
+
+{% block title %}
+Specifications - {{title}}
+{% endblock %}
+
+{% block body %}
+
+{% include 'ui_new/admin/projects/projects_link.html' %}
+{% include 'ui_new/admin/attributes/gene_specifications_add2.html' %}
+{% include 'ui_new/admin/attributes/gene_specifications_remove2.html' %}
+
+{% include 'ui_new/admin/attributes/chipset_specifications_add2.html' %}
+{% include 'ui_new/admin/attributes/chipset_specifications_remove2.html' %}
+
+{% include 'ui_new/admin/attributes/patient_specifications_sort.html' %}
+{% include 'ui_new/admin/attributes/patient_specifications_add.html' %}
+{% include 'ui_new/admin/attributes/patient_specifications_remove.html' %}
+
+{% include 'ui_new/admin/attributes/sample_specifications_sort.html' %}
+{% include 'ui_new/admin/attributes/sample_specifications_add.html' %}
+{% include 'ui_new/admin/attributes/sample_specifications_remove.html' %}
+
+{% include 'ui_new/user/breadcrumbs/breadcrumbs.html' %}
+
+{% include 'ui_new/messages.html' %}
+
+<style>
+.custom_col1 {
+    border: 1px solid black;
+}
+</style>
+
+<div class="container">
+    <div class="p-3">
+        <div class="p-3 custom_col1">
+            <h3>Patient Specifications</h3>
+            <table id="patientspec_table" class="table table-bordered" cellspacing="0" width="100%">
+                <thead>
+                    <tr>
+                        <th class="th-sm"></th>
+                        <th class="th-sm">pk</th>
+                        <th class="th-sm">Project</th>
+                        <th class="th-sm">Specification</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for project in projects %}
+                        {% for patientdpt in project.patientspec.patientdpts_patientspec.all|dpt_exclude_none %}
+                        <tr>
+                            <td></td>
+                            <td>{{patientdpt.pk}}</td>
+                            <td>{{project.name}}</a></td>
+                            <td>{{patientdpt.datapointtype}}</td>
+                        </tr>
+                        {% endfor %}
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        <div class="p-3 custom_col1">
+            <h3>Sample Specifications</h3>
+            <table id="samplespec_table" class="table table-bordered" cellspacing="0" width="100%">
+                <thead>
+                    <tr>
+                        <th class="th-sm"></th>
+                        <th class="th-sm">pk</th>
+                        <th class="th-sm">Project</th>
+                        <th class="th-sm">Specification</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for project in projects %}
+                        {% for sampledpt in project.samplespec.sampledpts_samplespec.all|dpt_exclude_none %}
+                        <tr>
+                            <td></td>
+                            <td>{{sampledpt.pk}}</td>
+                            <td>{{project.name}}</a></td>
+                            <td>{{sampledpt.datapointtype}}</td>
+                        </tr>
+                        {% endfor %}
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+    <div class="p-3">
+        <div class="p-3 custom_col1">
+            <h3>Gene Specifications</h3>
+            <table id="genespec_table" class="table table-bordered" cellspacing="0" width="100%">
+                <thead>
+                    <tr>
+                        <th class="th-sm"></th>
+                        <th class="th-sm">pk</th>
+                        <th class="th-sm">Gene Specifications</th>
+                        <th class="th-sm">Datapoint Types</th>
+                        <th class="th-sm">Project</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for genespec in genespecs %}
+                    <tr>
+                        <td></td>
+                        <td>{{genespec.pk}}</td>
+                        <td>{{genespec|gene_specification_link}}</td>
+                        <td>
+                            {% with genespec.specdpts_specification.all|dpt_exclude_none as cdpts %}{{cdpts.count}}{% endwith %}
+                        </td>
+                        <td>{{genespec.project}}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        <div class="p-3 custom_col1">
+            <h3>Chipset Specifications</h3>
+            <table id="chipsetspec_table2" class="table table-bordered" cellspacing="0" width="100%">
+                <thead>
+                    <tr>
+                        <th class="th-sm"></th>
+                        <th class="th-sm">pk</th>
+                        <th class="th-sm">Chipset Specifications</th>
+                        <th class="th-sm">Associated Genes</th>
+                        <th class="th-sm">Datapoint Types</th>
+                        <th class="th-sm">Project</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for chipsetspec in chipsetspecs %}
+                    <tr>
+                        <td></td>
+                        <td>{{chipsetspec.pk}}</td>
+                        <td><a class="btn-link" href="{% url 'admin_attributes_chipset_specification' chipsetspec.pk %}">{{chipsetspec.get_name}}</a></td>
+                        <td>{{chipsetspec.genes.count}}</td>
+                        <td>
+                            {% with chipsetspec.confdpts_chipsetspec.all|dpt_exclude_none as cdpts %}{{cdpts.count}}{% endwith %}
+                        </td>
+                        <td>{{chipsetspec.project}}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        
+    </div>
+</div>
+
+
+<script type="text/javascript">
+    $(document).ready(function(){
+    
+        $(".return_page").val(window.location.pathname);
+    
+        mytable = $("#genespec_table").DataTable({
+            dom: "<'row'<'col-sm-12 col-md-5'B><'col-sm-12 col-md-2'l><'col-sm-12 col-md-5'f>>" + "<'row'<'col-sm-12'tr>>" + "<'row'<'col-sm-12 col-md-5'i><'col-sm-12 col-md-7'p>>",
+            buttons: [
+                { extend: 'selectNone', attr: { id: 'custom_selectnone_btn', class: 'btn btn-sm custom-button-color2' } },
+                { text: 'Add', attr: { id: 'custom_genespec_add_btn', 'data-toggle': 'modal', 'data-target': '#add_genespec', class: 'btn btn-sm custom-button-color2'}},
+                { text: 'Delete', attr: { id: 'custom_genespec_delete_btn', 'data-toggle': 'modal', 'data-target': '#remove_genespec', class: 'btn btn-sm custom-button-color3'}},
+                { text: 'Sort', attr: { id: 'custom_genespec_sort_btn', class: 'btn btn-sm custom-button-color2'}},
+            ],
+            pagingType: "full_numbers",
+            lengthMenu: [
+                [5, 10, 25, 50, -1],
+                [5, 10, 25, 50, "All"]
+            ],
+            columnDefs: [{
+                orderable: false,
+                className: 'select-checkbox select-checkbox-all',
+                targets: 0
+            },
+            {
+                targets: 1,
+                visible: false,
+            }],
+            select: {
+                style: 'multi',
+                selector: 'td:first-child'
+            },
+        });
+    
+        // delete button
+        mytable.button("#custom_genespec_delete_btn").enable(false);
+        mytable.button("#custom_genespec_sort_btn").enable(false);
+        mytable.on("select deselect", function(){
+            let selectedRows = mytable.rows({selected: true});
+            mytable.button("#custom_genespec_delete_btn").enable(selectedRows.count() > 0);
+            mytable.button("#custom_genespec_sort_btn").enable(selectedRows.count() == 1);
+            let pkval = [];
+            $.each(selectedRows.data(), function(i, val){
+                if(val[1] !== "") {
+                    pkval.push(val[1]) // pushing hidden pk value in column 2: index 1
+                }
+            });
+            if(pkval.length <= 0) {
+                pkval = "";
+            }
+            
+            $("#genespec_pks").val(pkval);
+        });
+    
+        $("#custom_genespec_delete_btn").on("click", function(){
+            let genespec_pks = $("#genespec_pks").val();
+            if (genespec_pks) {
+                genespec_pks = genespec_pks.split(',').length;
+            } else {
+                genespec_pks = genespec_pks.length;
+            }
+            $('#custom_selected_genespec_count_span').html(genespec_pks);
+        });
+
+        $("#custom_genespec_sort_btn").on("click", function(){
+            let selectedRows = mytable.rows({selected: true});
+            let genespec_pk = selectedRows.data()[0][1];
+            window.location.href = "{% url 'admin_attributes_specdpt_sort' 1 %}".replace('1', genespec_pk);
+        }); 
+    
+
+
+
+        mytable2 = $("#chipsetspec_table2").DataTable({
+            dom: "<'row'<'col-sm-12 col-md-5'B><'col-sm-12 col-md-2'l><'col-sm-12 col-md-5'f>>" + "<'row'<'col-sm-12'tr>>" + "<'row'<'col-sm-12 col-md-5'i><'col-sm-12 col-md-7'p>>",
+            buttons: [
+                { extend: 'selectNone', attr: { id: 'custom_selectnone_btn2', class: 'btn btn-sm custom-button-color2' } },
+                { text: 'Add', attr: { id: 'custom_chipsetspec_add_btn2', 'data-toggle': 'modal', 'data-target': '#add_chipsetspec', class: 'btn btn-sm custom-button-color2'}},
+                { text: 'Delete', attr: { id: 'custom_chipsetspec_delete_btn2', 'data-toggle': 'modal', 'data-target': '#remove_chipsetspec', class: 'btn btn-sm custom-button-color3'}},
+                { text: 'Sort', attr: { id: 'custom_chipsetspec_sort_btn', class: 'btn btn-sm custom-button-color2'}},
+            ],
+            pagingType: "full_numbers",
+            lengthMenu: [
+                [5, 10, 25, 50, -1],
+                [5, 10, 25, 50, "All"]
+            ],
+            columnDefs: [{
+                orderable: false,
+                className: 'select-checkbox select-checkbox-all',
+                targets: 0
+            },
+            {
+                targets: 1,
+                visible: false,
+            }],
+            select: {
+                style: 'multi',
+                selector: 'td:first-child'
+            },
+        });
+    
+        // delete button
+        mytable2.button("#custom_chipsetspec_delete_btn2").enable(false);
+        mytable2.button("#custom_chipsetspec_sort_btn").enable(false);
+        mytable2.on("select deselect", function(){
+            let selectedRows = mytable2.rows({selected: true});
+            mytable2.button("#custom_chipsetspec_delete_btn2").enable(selectedRows.count() > 0);
+            mytable2.button("#custom_chipsetspec_sort_btn").enable(selectedRows.count() == 1);
+            let pkval = [];
+            $.each(selectedRows.data(), function(i, val){
+                if(val[1] !== "") {
+                    pkval.push(val[1]) // pushing hidden pk value in column 2: index 1
+                }
+            });
+            if(pkval.length <= 0) {
+                pkval = "";
+            }
+            
+            $("#chipsetspec_pks").val(pkval);
+        });
+    
+        $("#custom_chipsetspec_delete_btn2").on("click", function(){
+            let chipsetspec_pks = $("#chipsetspec_pks").val();
+            if (chipsetspec_pks) {
+                chipsetspec_pks = chipsetspec_pks.split(',').length;
+            } else {
+                chipsetspec_pks = chipsetspec_pks.length;
+            }
+            $('#custom_selected_chipsetspec_count_span').html(chipsetspec_pks);
+        });
+
+        $("#custom_chipsetspec_sort_btn").on("click", function(){
+            let selectedRows = mytable2.rows({selected: true});
+            let chipsetspec_pk = selectedRows.data()[0][1];
+            window.location.href = "{% url 'admin_attributes_confdpt_sort' 1 %}".replace('1', chipsetspec_pk);
+        }); 
+
+
+        // patient specification
+        mytable3 = $("#patientspec_table").DataTable({
+            dom: "<'row'<'col-sm-12 col-md-5'B><'col-sm-12 col-md-2'l><'col-sm-12 col-md-5'f>>" + "<'row'<'col-sm-12'tr>>" + "<'row'<'col-sm-12 col-md-5'i><'col-sm-12 col-md-7'p>>",
+            buttons: [
+                { extend: 'selectNone', attr: { id: 'custom_selectnone_btn3', class: 'btn btn-sm custom-button-color2' } },
+                { text: 'Add', attr: { id: 'custom_patientspec_add_btn', 'data-toggle': 'modal', 'data-target': '#add_patientspec', class: 'btn btn-sm custom-button-color2'}},
+                { text: 'Delete', attr: { id: 'custom_patientspec_delete_btn', 'data-toggle': 'modal', 'data-target': '#remove_patientspec', class: 'btn btn-sm custom-button-color3'}},
+                { text: 'Sort', attr: { id: 'custom_patientspec_sort_btn', 'data-toggle': 'modal', 'data-target': '#sort_patientspec', class: 'btn btn-sm custom-button-color2'}},
+            ],
+            pagingType: "full_numbers",
+            lengthMenu: [
+                [5, 10, 25, 50, -1],
+                [5, 10, 25, 50, "All"]
+            ],
+            columnDefs: [{
+                orderable: false,
+                className: 'select-checkbox select-checkbox-all',
+                targets: 0
+            },
+            {
+                targets: 1,
+                visible: false,
+            }],
+            select: {
+                style: 'multi',
+                selector: 'td:first-child'
+            },
+        });
+
+        // delete button
+        mytable3.button("#custom_patientspec_delete_btn").enable(false);
+        mytable3.on("select deselect", function(){
+            let selectedRows = mytable3.rows({selected: true});
+            mytable3.button("#custom_patientspec_delete_btn").enable(selectedRows.count() > 0);
+            let pkval = [];
+            $.each(selectedRows.data(), function(i, val){
+                if(val[1] !== "") {
+                    pkval.push(val[1]) // pushing hidden pk value in column 2: index 1
+                }
+            });
+            if(pkval.length <= 0) {
+                pkval = "";
+            }
+            
+            $("#patientdpt_pks").val(pkval);
+        });
+    
+        $("#custom_patientspec_delete_btn").on("click", function(){
+            let patientdpt_pks = $("#patientdpt_pks").val();
+            if (patientdpt_pks) {
+                patientdpt_pks = patientdpt_pks.split(',').length;
+            } else {
+                patientdpt_pks = patientdpt_pks.length;
+            }
+            $('#custom_selected_patientspec_count_span').html(patientdpt_pks);
+        });
+
+
+        // sample specification
+        mytable4 = $("#samplespec_table").DataTable({
+            dom: "<'row'<'col-sm-12 col-md-5'B><'col-sm-12 col-md-2'l><'col-sm-12 col-md-5'f>>" + "<'row'<'col-sm-12'tr>>" + "<'row'<'col-sm-12 col-md-5'i><'col-sm-12 col-md-7'p>>",
+            buttons: [
+                { extend: 'selectNone', attr: { id: 'custom_selectnone_btn3', class: 'btn btn-sm custom-button-color2' } },
+                { text: 'Add', attr: { id: 'custom_samplespec_add_btn', 'data-toggle': 'modal', 'data-target': '#add_samplespec', class: 'btn btn-sm custom-button-color2'}},
+                { text: 'Delete', attr: { id: 'custom_samplespec_delete_btn', 'data-toggle': 'modal', 'data-target': '#remove_samplespec', class: 'btn btn-sm custom-button-color3'}},
+                { text: 'Sort', attr: { id: 'custom_samplespec_sort_btn', 'data-toggle': 'modal', 'data-target': '#sort_samplespec', class: 'btn btn-sm custom-button-color2'}},
+            ],
+            pagingType: "full_numbers",
+            lengthMenu: [
+                [5, 10, 25, 50, -1],
+                [5, 10, 25, 50, "All"]
+            ],
+            columnDefs: [{
+                orderable: false,
+                className: 'select-checkbox select-checkbox-all',
+                targets: 0
+            },
+            {
+                targets: 1,
+                visible: false,
+            }],
+            select: {
+                style: 'multi',
+                selector: 'td:first-child'
+            },
+        });
+
+        // delete button
+        mytable4.button("#custom_samplespec_delete_btn").enable(false);
+        mytable4.on("select deselect", function(){
+            let selectedRows = mytable4.rows({selected: true});
+            mytable4.button("#custom_samplespec_delete_btn").enable(selectedRows.count() > 0);
+            let pkval = [];
+            $.each(selectedRows.data(), function(i, val){
+                if(val[1] !== "") {
+                    pkval.push(val[1]) // pushing hidden pk value in column 2: index 1
+                }
+            });
+            if(pkval.length <= 0) {
+                pkval = "";
+            }
+            
+            $("#sampledpt_pks").val(pkval);
+        });
+    
+        $("#custom_samplespec_delete_btn").on("click", function(){
+            let sampledpt_pks = $("#sampledpt_pks").val();
+            if (sampledpt_pks) {
+                sampledpt_pks = sampledpt_pks.split(',').length;
+            } else {
+                sampledpt_pks = sampledpt_pks.length;
+            }
+            $('#custom_selected_samplespec_count_span').html(sampledpt_pks);
+        });
+    
+    });
+</script>
+    
+
+{% endblock %}

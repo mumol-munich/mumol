@@ -1,0 +1,48 @@
+{% load crispy_forms_tags %}
+
+<form method="post" class="text-center" action="#">
+    
+    {% csrf_token %}
+    <!-- Central Modal Small -->
+    <div class="modal fade" id="import_genespec" tabindex="-1" role="dialog" aria-labelledby="import_genespec_label" aria-hidden="true">
+
+        <!-- Change class .modal-sm to change the size of the modal -->
+        <div class="modal-dialog" role="document">
+
+
+            <div class="modal-content">
+                <div class="modal-header text-left">
+                    <h4 class="modal-title w-100" id="import_genespec_label">Import existing specifications</h4>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <div class="d-flex align-items-center justify-content-center">
+
+                        <div class="text-left font-weight-bolder">
+                            test
+                        </div>
+
+                        <div>
+                            <input type="hidden" name="access_type" value="import">
+                            <input type="hidden" class="return_page" name="return_page" value="">
+                        </div>
+
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn custom-outline-color1-btn btn-sm" data-dismiss="modal">Close</button>
+                        <button type="submit" class="btn custom-color1-btn btn-sm">Submit</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</form>
+<!-- Central Modal Small -->
+
+<script type="text/javascript">
+    $('#import_genespec').on('shown.bs.modal', function() {
+      $('#id_name').focus();
+    })
+</script>

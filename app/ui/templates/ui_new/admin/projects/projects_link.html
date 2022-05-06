@@ -1,0 +1,51 @@
+{% load filters %}
+
+{% if project_add_allow %}
+    {% include 'ui_new/admin/projects/project_add.html' %}
+{% endif %}
+
+{% if project_link_allow %}
+    {% include 'ui_new/admin/projects/project_remove.html' %}
+    {% include 'ui_new/admin/users/project_user_permission.html' %}
+{% endif %}
+
+
+<ul class="nav nav-tabs" id="project_link" role="navigation">
+
+    <!-- <li class="nav-item custom-project-permission-li"> -->
+    <li class="nav-item">
+        <a class="nav-link btn-light font-weight-bold mr-1" href="{% url 'admin_attributes_methods' %}" data-type="methods" style="display:inline-block;">{{'method'|set_icons}}Methods</a>
+        <a class="nav-link btn-light font-weight-bold mr-1" href="{% url 'admin_attributes_genes' %}" data-type="genes" style="display:inline-block;">{{'gene'|set_icons}}Genes</a>
+        <a class="nav-link btn-light font-weight-bold mr-1" data-type="specifications" href="{% url 'admin_attributes_specifications' %}" style="display:inline-block;">{{'specification'|set_icons}}Specifications</a>
+        <a class="nav-link btn-light font-weight-bold mr-1" href="{% url 'admin_attributes_datapointtypes' %}" data-type="datapointtypes" style="display:inline-block;">{{'datapoint'|set_icons}}Datapoint Types</a>
+        {% if project_link_allow %}
+            <a class="nav-link custom-button-color2 font-weight-bold mr-1" href="#" data-toggle="modal" data-target="#add_remove_userpermission" style="display:inline-block;">User Permissions</a>
+            <a class="nav-link custom-button-color3 mr-1" href="#" data-toggle="modal" data-target="#remove_project" style="display:inline-block;">Delete</a>
+        {% endif %}
+    </li>
+
+    
+    <li class="nav-item ml-auto">
+        {% if not project_link_deny %}
+        <a class="nav-link" href="#" data-toggle="modal" data-target="#add_project" role="tab"><i class="fas fa-plus"></i></a>
+    </li>
+    <li class="nav-item">
+        {% endif %}
+        {% for project in projects %}
+            <a class="nav-link btn-light ml-1" href="{% url 'project_view' project.pk %}" role="tab" data-project_pk="{{project.pk}}" style="display:inline-block">{{ 'project'|set_icons }}{{project.name}}</a>
+        {% endfor %}
+    </li>
+
+</ul>
+
+<script type="text/javascript">
+
+    let reqtypes = ["methods", "genes", "specifications", "datapointtypes"];
+    for(i = 0; i < reqtypes.length; i++) {
+        if(window.location.href.indexOf("attributes/" + reqtypes[i]) > -1) {
+            $("#project_link").find("[data-type='" + reqtypes[i] + "']").addClass("active").removeClass("btn-light");
+            break;
+        }
+    }
+
+</script>

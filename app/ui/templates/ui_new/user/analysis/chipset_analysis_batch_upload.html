@@ -1,0 +1,46 @@
+{% load crispy_forms_tags %}
+
+<form method="post" class="text-center" action="{% url 'analysis_chipsets_upload_download' sample.pk %}?chipsetspec={{chipsetspec.pk}}" enctype='multipart/form-data'>
+    
+    {% csrf_token %}
+    <!-- Central Modal Small -->
+    <div class="modal fade" id="upload_chipsetanalysis_batch" tabindex="-1" role="dialog" aria-labelledby="upload_chipsetanalysis_batch_label" aria-hidden="true">
+
+        <!-- Change class .modal-sm to change the size of the modal -->
+        <div class="modal-dialog modal-md" role="document">
+
+
+            <div class="modal-content">
+                <div class="modal-header text-left">
+                    <h4 class="modal-title w-100" id="upload_chipsetanalysis_batch_label">Upload chipset analysis</h4>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    
+                    <!-- <div class="d-flex align-items-center justify-content-center"> -->
+                        
+                        <label for="upload_chipsetanalysis_batch_file" class="form-label">Upload batch input</label>
+                        <input class="form-control form-control-sm" id="upload_chipsetanalysis_batch_file" name="upload_chipsetanalysis_batch_file" type="file" />
+
+                        <a href="{% url 'analysis_chipsets_upload_download' sample.pk %}?chipsetspec={{chipsetspec.pk}}" class="btn btn-link">Download template</a>
+                        <!-- <div class="text-left font-weight-bolder md-form">
+                        </div> -->
+
+                        <div>
+                            <input type="hidden" name="access_type" value="add">
+                            <input type="hidden" class="return_page" name="return_page" value="">
+                        </div>
+
+                    <!-- </div> -->
+                    <div class="modal-footer">
+                        <button type="button" class="btn custom-button-color2 btn-sm" data-dismiss="modal">Close</button>
+                        <button type="submit" class="btn custom-button-color1 btn-sm">Submit</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</form>
+<!-- Central Modal Small -->

@@ -1,0 +1,248 @@
+{% load crispy_forms_tags %}
+
+<script>
+    function SetValidatorErrorMsg(that) {
+        // check value
+        let that_value = $(that).parents(".custom-add-validator-div-row").find(".custom-add-validator-value");
+        let that_type = $(that).parents(".custom-add-validator-div-row").find(".custom-add-validator-type");
+        let that_errormsg = $(that).parents(".custom-add-validator-div-row").find(".custom-add-validator-errormsg");
+
+        if(that_type.val() == null) {
+            return;
+        }
+
+        if($(that).hasClass("custom-add-validator-type")) {
+            that_value.val("");
+            that_errormsg.val("");
+
+            if(that_type.val() == "regex" || that_type.val() == "email") {
+                that_value.attr("type", "text");
+                if(that_type.val() == "email") {
+                    that_value.val("None");
+                    that_errormsg.val("Only valid emails are allowed.");
+                }
+            } else {
+                that_value.attr("type", "number");
+            }
+            return;
+        }
+
+        if (that_value.val().length <= 0) {
+            return;
+        }
+
+        // error msg
+        let that_errmsg;
+        if (that_type.val() == "regex") {
+            that_errmsg = "Only regular expressions satisfying '" + that_value.val() + "' are allowed.";
+        } else if (that_type.val() == "email") {
+            that_errmsg = "Only valid emails are allowed."
+        } else if (that_type.val() == "maxval") {
+            that_errmsg = "Only values <=" + that_value.val() + " is allowed."
+        } else if (that_type.val() == "minval") {
+            that_errmsg = "Only values >=" + that_value.val() + " is allowed."
+        } else if (that_type.val() == "maxlen") {
+            that_errmsg = "Only values with maximum length of '" + that_value.val() + "' is allowed."
+        } else if (that_type.val() == "minlen") {
+            that_errmsg = "Only values with minimum length of '" + that_value.val() + "' is allowed."
+        } else if (that_type.val() == "decval") {
+            that_errmsg = "Only decimal values are allowed."
+        }
+
+        that_errormsg.val(that_errmsg);
+    }
+</script>
+
+<form method="post" class="text-center" action="{% url 'admin_datapoints_types_add_remove' %}">
+    
+    {% csrf_token %}
+    <!-- Central Modal Small -->
+    <div class="modal fade" id="add_datapointtype" tabindex="-1" role="dialog" aria-labelledby="add_datapointtype_label" aria-hidden="true">
+
+        <!-- Change class .modal-sm to change the size of the modal -->
+        <div class="modal-dialog modal-lg" role="document">
+
+
+            <div class="modal-content">
+                <div class="modal-header text-left">
+                    <h4 class="modal-title w-100" id="add_datapointtype_label">Add Datapoint Type</h4>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <div class="d-flex align-items-center justify-content-center w-100 my-2 py-2">
+
+                        <div class="text-left font-weight-bolder w-75">
+                            {{ formdatatype.type | as_crispy_field }}
+                            <div class="">
+                                <div class="form-row mb-4">
+                                    <div class="col">
+                                        {{ formdatatype.name | as_crispy_field }}
+                                    </div>
+                                    <div class="col">
+                                        {{ formdatatype.helptext | as_crispy_field }}
+                                    </div>
+                                </div>
+                                <div class="form-row">
+                                    <span id="span_def"></span>
+                                </div>
+    
+                                <span id="span_0"></span>
+                                <button type="button" class="btn btn-link" id="add_validators_btn"><i class="fas fa-plus"></i> Add validators</button>
+                            </div>
+                            <small class="custom-text-color3">Default values are selected when added to specification result</small>
+                        </div>
+
+                        <div>
+                            <input type="hidden" name="access_type" value="add">
+                            <input type="hidden" class="return_page" name="return_page" value="">
+                            <input type="hidden" id="array_list" name="array_list" value="">
+                        </div>
+
+
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn custom-button-color2 btn-sm" data-dismiss="modal">Close</button>
+                        <button type="submit" class="btn custom-button-color1 btn-sm">Submit</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</form>
+<!-- Central Modal Small -->
+
+<script type="text/javascript">
+    $('#add_datapointtype').on('shown.bs.modal', function() {
+      $('#id_name').focus();
+    })
+</script>
+
+{% verbatim %}
+<script id="add_validators" type="text/x-handlebars-template">
+    <div class="custom-add-validator-div m-2 p-2 grey lighten-3">
+        <div class="form-row custom-add-validator-div-row">
+            <div class="col-3">
+                <label for="validator_add_validator_{{btnclicks}}">Type*</label>
+                <select name="validator_add_validator_{{btnclicks}}" id="validator_add_validator_{{btnclicks}}" class="form-control custom-add-validator-type" required>
+                    <option value="" selected disabled>Select</option>
+                    {{#each dpvalidator}}
+                    <option value="{{@key}}">{{this}}</option>
+                    {{/each}}
+                </select>
+            </div>
+            <div class="col-3">
+                <label for="validator_add_value_{{btnclicks}}">Value*</label>
+                <input type="text" name="validator_add_value_{{btnclicks}}" id="validator_add_value_{{btnclicks}}" class="form-control custom-add-validator-value"  value="" required>
+            </div>
+            <div class="col-5">
+                <label for="validator_add_errormsg_{{btnclicks}}">Error Message*</label>
+                <input type="text" name="validator_add_errormsg_{{btnclicks}}" id="validator_add_errormsg_{{btnclicks}}" class="form-control custom-add-validator-errormsg" value="" required>
+            </div>
+            <div class="col-1">
+                <button type="button" class="btn-link text-danger delete_validators_btn ml-auto"  data-btnclicks="{{btnclicks}}"><i class="fas fa-times"></i></button>
+            </div>
+            <small class="m-1 p-1">For validators which doesn't need value (eg: email validator), please enter None</small>
+        </div>
+    </div>
+</script>
+<script id="add_boolean" type="text/x-handlebars-template">
+    <div class="form-row">
+        <div class="col">
+            <label for="add_boolean_1">Option 1*</label>
+            <input type="text" class="form-control" value="" id="add_boolean_1" name="add_boolean_1" required>
+        </div>
+        <div class="col">
+            <label for="add_boolean_2">Option 2*</label>
+            <input type="text" class="form-control" value="" id="add_boolean_2" name="add_boolean_2" required>
+        </div>
+    </div>
+</script>
+<script id="add_multiple" type="text/x-handlebars-template">
+    <div class="form-group">
+        <label for="add_multiple_val">Options (comma separated)*</label>
+        <input type="text" class="form-control" value="" id="add_multiple_val" name="add_multiple_val" required>
+        <small>Eg: value1,value2,value3</small>
+    </div>
+</script>
+{% endverbatim %}
+
+<script type="text/javascript">
+
+$(document).ready(function(){
+
+    // select2
+    // $("#id_type").select2({
+    //     width: "100%",
+    //     placeholder: "Datapoint Type",
+    //     allowClear: false
+    // });
+    // focus
+    $('#add_datapointtype').on('shown.bs.modal', function() {
+      $('#id_type').focus();
+    })
+
+    // VALIDATORS
+    var btnclicks = 0;
+    var btnclickslist = [];
+    var dpvalidator = {{DPVALIDATOR|safe}};
+    var add_validators = Handlebars.compile($('#add_validators').html());
+    var add_boolean = Handlebars.compile($('#add_boolean').html());
+    var add_multiple = Handlebars.compile($('#add_multiple').html());
+
+    $("#add_validators_btn").on("click", function(){
+
+        console.log(btnclicks);
+
+        btnclicks += 1;
+        btnclickslist.push(btnclicks);
+        $("#array_list").val(String(btnclickslist));
+        
+
+        $("#span_0").append(add_validators({
+            'btnclicks' : btnclicks,
+            'dpvalidator': dpvalidator
+        }));
+
+        $(".delete_validators_btn").on("click", function(){
+            var btnclick = $(this).attr("data-btnclicks");
+            for(i=0; i< btnclickslist.length; i++){
+                if(btnclickslist[i] == btnclick){
+                    btnclickslist.splice(i, 1);
+                }
+            }
+            $("#array_list").val(String(btnclickslist));
+            // $(this).parent().parent().remove();
+            $(this).parents("div.custom-add-validator-div").remove();
+        });
+
+        $(".custom-add-validator-type").on("change", function(){
+            SetValidatorErrorMsg(this);
+        })
+        $(".custom-add-validator-value").on("input", function(){
+            SetValidatorErrorMsg(this);
+        })
+        
+    });
+
+    $("#id_type").on("change", function(){
+        $("#span_0").html('');
+        let checkval = ["boolean", "select", "multiple"]
+        $("#span_def").html('');
+        $("#add_validators_btn").show();
+        
+        if(checkval.indexOf($(this).val()) > -1){
+            $("#add_validators_btn").hide();
+        // if(checkval.includes($(this).val())){
+            if($(this).val() == "boolean"){
+                $("#span_def").append(add_boolean());
+            } else {
+                $("#span_def").append(add_multiple());
+            }
+        }
+    });
+
+
+});
+</script>

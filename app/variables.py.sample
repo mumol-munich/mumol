@@ -1,0 +1,6 @@
+title = 'MUMOL'
+app_prefix = ''
+secret_key = 'mysecretkey'
+debug = True
+allowed_hosts = ['localhost', '127.0.0.1'] 
+venv_path = 'venv'

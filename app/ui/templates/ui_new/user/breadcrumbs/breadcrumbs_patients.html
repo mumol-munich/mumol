@@ -1,0 +1,19 @@
+{% load filters %}
+{% if current_page == 'patients' %}
+    <li class="breadcrumb-item"><strong>{{'patients'|set_icons}}Patients</strong></li>
+{% else %}
+    <li class="breadcrumb-item"><a href="{% url 'patients_view_user' project_pk %}"><strong>{{'patients'|set_icons}}Patients</strong></a></li>
+    {% if current_page == 'patient' %}
+        <li class="breadcrumb-item"><strong>{{'patient'|set_icons}}{{projectid.patient.lastname}}, {{projectid.patient.firstname}}</strong></li>
+    {% else %}
+        <li class="breadcrumb-item"><a href="{% url 'patient_view_user' sample.projectid_id %}"><strong>{{'patient'|set_icons}}{{projectid.patient.lastname}}, {{projectid.patient.firstname}}</strong></a></li>
+        {% if current_page == 'sample' %}
+            <li class="breadcrumb-item"><strong>{{'sample'|set_icons}}{{sample.get_samplename}}</strong></li>
+        {% else %}
+            <li class="breadcrumb-item"><a href="{% url 'sample_view_user' sample.pk %}"><strong>{{'sample'|set_icons}}{{sample.dateofreceipt}}</strong></a></li>
+
+            {% include 'ui_new/user/breadcrumbs/breadcrumbs_analysis.html' %}
+            
+        {% endif %}
+    {% endif %}
+{% endif %}

@@ -1,0 +1,96 @@
+{% load crispy_forms_tags %}
+
+<div class="row">
+    <div class="col-md-12">
+        <ul class="stepper stepper-vertical">
+            <h5><strong>New Chipset Specification</strong></h5>
+            <li class="active">
+                <a href="#!">
+                    <span class="circle">1</span>
+                    <span class="label">Chipset Information</span>
+                </a>
+                <div class="step-content custom-color-color5 lighten-3 w-50 custom-stepper-div">
+                    {{ formspec.name | as_crispy_field }}
+                    <div class="form-row">
+                        <div class="col">
+                            {{ formspec.manufacturer | as_crispy_field }}
+                        </div>
+                        <div class="col">
+                            {{ formspec.version | as_crispy_field }}
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="col-10">
+                            {{ formspec.genes | as_crispy_field }}
+                        </div>
+                        <div class="col-2">
+                            <button type="button" class="btn btn-link btn-sm px-4 mt-4" role="group" data-toggle="modal" data-target="#add_gene" style="position:absolute;top: 30%; transform: translateY(-50%);">
+                                <i class="fas fa-3x fa-plus"></i>
+                            </button>
+                        </div>
+                    </div>
+
+                </div>
+            </li>
+            <li>
+                <a href="#!">
+                    <span class="circle">2</span>
+                    <span class="label">Datapoints</span>
+                </a>
+                <div class="step-content custom-color-color5 lighten-3 w-100 custom-stepper-div">
+                    <div class="form-row">
+                        <div class="col-8">
+                            <table class="table table-sm overflow-auto" style="max-height:250px;">
+                                <thead>
+                                    <tr>
+                                        <th scope="col"><h6><strong>Datapoint Type</strong></h6></th>
+                                        <th scope="col"><h6><strong>Mandatory</strong></h6></th>
+                                        <th scope="col"><h6><strong>Default</strong></h6></th>
+                                        <th scope="col"></th>
+                                    </tr>
+                                </thead>
+                                <tbody id="custom_chipset_table_tbody">
+
+                                </tbody>
+                            </table>
+                        </div>
+                        <div class="col-3">
+                            {% include 'ui_new/admin/attributes/datapointtypes_select.html' %}
+                        </div>
+                    </div>
+                </div>
+            </li>
+            <!-- <li>
+                <a href="#!">
+                    <span class="circle">4</span>
+                    <span class="label">Fourth step</span>
+                </a>
+            </li> -->
+        </ul>
+    </div>
+</div>
+
+<style>
+    .stepper-vertical li {
+        flex: 1 0 auto;
+    }
+    .stepper-vertical li .step-content {
+        width: 90%;
+    }
+</style>
+
+<script type="text/javascript">
+$(document).ready(function(){
+
+    $("#id_genes option[value='']").remove();
+    $("#id_genes").select2({
+        width: "100%",
+        placeholder: "Select Genes",
+        allowClear: true,
+        closeOnSelect: false
+    });
+    
+    
+    $(".stepper.stepper-vertical").children("li:not([class])").children(".custom-stepper-div").hide();
+});
+</script>

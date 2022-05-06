@@ -1,0 +1,116 @@
+{% extends "ui_new/base.html" %}
+{% load filters %}
+
+{% block title %}
+DatapointTypes - {{title}}
+{% endblock %}
+
+{% block body %}
+
+{% include 'ui_new/admin/projects/projects_link.html' %}
+{% include 'ui_new/admin/attributes/datapointtypes_remove.html' %}
+{% include 'ui_new/admin/attributes/datapointtype_add.html' %}
+
+{% include 'ui_new/user/breadcrumbs/breadcrumbs.html' %}
+
+{% include 'ui_new/messages.html' %}
+
+<div class="container">
+    <div class="p-3">
+        <table id="datapointtypes_table" class="table table-bordered" cellspacing="0" width="100%">
+            <thead>
+                <tr>
+                    <th class="th-sm"></th>
+                    <th class="th-sm">pk</th>
+                    <th class="th-sm">Name</th>
+                    <th class="th-sm">Type</th>
+                    <th class="th-sm">Validators</th>
+                    <th class="th-sm">Options</th>
+                    <th class="th-sm">Help Text</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for datapointtype in datapointtypes %}
+                <tr>
+                    <td></td>
+                    <td>{{datapointtype.pk}}</td>
+                    <td>{{datapointtype.name}}</td>
+                    <td>{{datapointtype.type}}</td>
+                    <td>
+                        {% for validator in datapointtype.validators.all %}
+                        {{validator}}<br>
+                        {% endfor %}
+                    </td>
+                    <td>{{datapointtype.options}}</td>
+                    <td>{{datapointtype.helptext}}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<script type="text/javascript">
+$(document).ready(function(){
+
+    $(".return_page").val(window.location.pathname);
+
+    mytable = $("#datapointtypes_table").DataTable({
+        dom: "<'row'<'col-sm-12 col-md-5'B><'col-sm-12 col-md-2'l><'col-sm-12 col-md-5'f>>" + "<'row'<'col-sm-12'tr>>" + "<'row'<'col-sm-12 col-md-5'i><'col-sm-12 col-md-7'p>>",
+        buttons: [
+            { extend: 'selectNone', attr: { id: 'custom_selectnone_btn', class: 'btn btn-sm custom-button-color2' } },
+            { text: 'Add', attr: { id: 'custom_datapointtype_add_btn', 'data-toggle': 'modal', 'data-target': '#add_datapointtype', class: 'btn btn-sm custom-button-color2'}},
+            { text: 'Delete', attr: { id: 'custom_datapointtype_delete_btn', 'data-toggle': 'modal', 'data-target': '#remove_datapointtype', class: 'btn btn-sm custom-button-color3'}},
+        ],
+        pagingType: "full_numbers",
+        lengthMenu: [
+            [10, 25, 50, -1],
+            [10, 25, 50, "All"]
+        ],
+        columnDefs: [{
+            orderable: false,
+            className: 'select-checkbox select-checkbox-all',
+            targets: 0
+        },
+        {
+            targets: 1,
+            visible: false,
+        }],
+        select: {
+            style: 'multi',
+            selector: 'td:first-child'
+        },
+    });
+
+    // delete button
+    mytable.button("#custom_datapointtype_delete_btn").enable(false);
+    mytable.on("select deselect", function(){
+        let selectedRows = mytable.rows({selected: true});
+        mytable.button("#custom_datapointtype_delete_btn").enable(selectedRows.count() > 0);
+        let pkval = [];
+        $.each(selectedRows.data(), function(i, val){
+            if(val[1] !== "") {
+                pkval.push(val[1]) // pushing hidden pk value in column 2: index 1
+            }
+        });
+        if(pkval.length <= 0) {
+            pkval = "";
+        }
+        
+        $("#datapointtype_pks").val(pkval);
+    });
+
+    $("#custom_datapointtype_delete_btn").on("click", function(){
+        let datapointtype_pks = $("#datapointtype_pks").val();
+        if (datapointtype_pks) {
+            datapointtype_pks = datapointtype_pks.split(',').length;
+        } else {
+            datapointtype_pks = datapointtype_pks.length;
+        }
+        $('#custom_selected_datapointtypes_count_span').html(datapointtype_pks);
+    });
+
+});
+</script>
+
+{% endblock %}

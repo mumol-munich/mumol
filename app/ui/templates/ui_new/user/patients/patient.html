@@ -1,0 +1,54 @@
+{% extends "ui_new/base.html" %}
+{% load crispy_forms_tags %}
+
+{% block title %}
+Patient - {{title}}
+{% endblock %}
+
+{% block body %}
+
+{% include 'ui_new/user/projects/projects_link.html' %}
+{% include 'ui_new/user/samples/samples_remove.html' %} 
+
+{% include 'ui_new/user/breadcrumbs/breadcrumbs.html' %}
+
+{% include 'ui_new/messages.html' %}
+
+{% include 'ui_new/user/patients/patient_input.html' %}
+
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-2 custom-color-color5 lighten-3 p-3" style="overflow-y:auto;max-height: 75vh">
+            <h4 class='mb-3'>Register Sample</h4>
+            <form method="post" action="{% url 'samples_add_remove' %}">
+                {% csrf_token %}
+                {{formsample | crispy}}
+
+                <div class="form-group">
+                    {% include 'ui_new/user/patients/samplespec_form.html' %}
+                    <input type="hidden" id="customsam_pks" name="customsam_pks" value="[]">
+                </div>
+
+                <input type="hidden" name="projectid_pk" value="{{projectid.pk}}">
+                <input type="hidden" name="return_page" class="return_page" value="">
+                <input type="hidden" name="access_type" value="add">
+                <button type="button" class="btn btn-sm custom-button-color1" id="customsam_add_sample_btn">Submit</button>
+                <button id="customsam_add_sample_btn2" type="submit" style="display:none;" disabled></button>
+            </form>
+        </div>
+        <div class="col-10 p-3">
+            {% include "ui_new/user/samples/samples_table.html" %}
+        </div>
+    </div>
+</div>
+
+<script type="text/javascript">
+$(document).ready(function(){
+    $(".return_page").val(window.location.pathname);
+    HighlightProjectActive("{{project_pk}}");
+
+});
+</script>
+    
+
+{% endblock %}

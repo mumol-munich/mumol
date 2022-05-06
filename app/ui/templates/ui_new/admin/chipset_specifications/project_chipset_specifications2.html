@@ -1,0 +1,176 @@
+{% load filters %}
+<div class="custom-treeview container" id="custom_chipsetpecs_treeview">
+    <h5 class="text-center p-2">
+        <!-- <strong>Single Gene Analysis Specifications</strong> -->
+        <!-- <hr> -->
+        <!-- <button class="btn btn-block btn-lg custom-button-color1 font-weight-bold">Multi-Gene Analysis Specifications</button> -->
+        <a href="{% url 'chipset_specifications_add' project.pk %}" class="btn btn-block btn-lg custom-button-color1 font-weight-bold">Multi-Gene Analysis Specifications</a>
+    </h5>
+    <hr>
+
+    {% if chipsetspecs %}
+
+    <div class="container">
+        <div class="mb-3">
+            <div class="custom-control custom-switch mb-2 d-flex">
+                <a href="{% url 'chipset_specifications_add' project.pk %}" class="btn-link"><i class="fas fa-plus fa-1x"></i> <strong>New Chip</strong></a>
+                <div class="ml-auto">
+                    <input type="checkbox" class="custom-control-input custom-delete-switch" id="custom_chipsetspec_delete_switch">
+                    <label class="custom-control-label" for="custom_chipsetspec_delete_switch">Delete</label>
+                </div>
+            </div>
+        </div>
+        <div class="input-group mb-3">
+            <input type="text" id="custom_chipsetspec_search_input" class="form-control" placeholder="Search method, gene or results" aria-label="Search method, gene or results"
+        aria-describedby="custom_chipsetspec_reset_search_btn">
+            <div class="input-group-append">
+                <button class="btn btn-md custom-button-color2 m-0 px-3 py-2 z-depth-0" type="button" id="custom_chipsetspec_reset_search_btn">Reset</button>
+            </div>
+        </div>
+    </div>
+
+    <ul class="m-1 p-1 custom-treeview-outer-ul">
+        {% for chipsetspec in chipsetspecs %}
+        <li class="custom-treeview-li">
+            <span class="custom-li-span0 custom-li-span d-block p-1 pl-2 mb-1 rounded" data-level="chipsetspec" data-pk="{{chipsetspec.pk}}">
+                <i class="fas fa-angle-down mr-2 custom-i-down custom-i-arrow"></i>
+                <!-- <i class="fas fa-box ic-w mx-1"></i>  -->
+                {{'chipset'|set_icons}}
+            <span class="custom-li-span-link-new2" data-pk="{{chipsetspec.pk}}" data-level="chipsetspec">{{chipsetspec.get_name}}</span>
+            </span>
+            <ul class="nested custom-nested-down">
+                {% for gene in chipsetspec.genes.all %} 
+                <li class="custom-treeview-li">
+                    <!-- <span class="custom-li-span0 d-block p-1 pl-2 rounded" data-level="gene" data-pk="{{chipsetspec.pk}},{{gene.pk}}"> -->
+                    <span class="d-block p-1 pl-2 rounded">
+                        <!-- <i class="fas fa-angle-right mr-2 custom-i-right custom-i-arrow"></i> -->
+                        <!-- <i class="fas fa-dna ic-w mx-1"></i>  -->
+                        {{'gene'|set_icons}}
+                        <a href="{% url 'admin_attributes_gene' gene.pk %}" class="btn-link d-inline">{{gene.name}}</a>
+                    </span>
+                </li>
+                {% endfor %}
+            </ul>
+        </li>
+        {% endfor %}
+    </ul>
+    {% else %}
+    <p>No information available.</p>
+    <p>Please create add a <a href="{% url 'chipset_specifications_add' project.pk %}">new chipset</a></p>
+    {% endif %}
+</div>
+
+<form method="post" action="{% url 'chipset_specifications_remove' project.pk %}">
+    {% csrf_token %}
+    <input type="hidden" name="return_page" class="return_page" value="">
+    <input type="hidden" id="custom_chipsetspec_data_level" name="custom_chipsetspec_data_level" value="">
+    <input type="hidden" id="custom_chipsetspec_data_pk" name="custom_chipsetspec_data_pk" value="">
+    <button type="submit" id="custom_chipsetspec_delete_btn" style="display:none;" disabled></button>
+</form>
+
+
+<script type="text/javascript">
+$(document).ready(function(){
+
+    var activeclasslist = "grey lighten-3 font-weight-bold";
+
+    $("#custom_chipsetpecs_treeview .custom-i-down").parent(".custom-li-span").addClass(activeclasslist);
+
+    // $("#custom_chipsetpecs_treeview :hidden").show();
+    $("#custom_chipsetpecs_treeview .custom-nested-right").hide("slow");
+
+    // reset button
+    $("#custom_chipsetspec_reset_search_btn").on("click", function(){
+        $("#custom_chipsetspec_search_input").val('').trigger("input");
+        // $("#custom_chipsetpecs_treeview :hidden").show("slow");
+        // $("#custom_chipsetpecs_treeview .custom-nested-right").hide("slow");
+    })
+
+    // span on click
+    $("#custom_chipsetpecs_treeview .custom-li-span").on("click", function(){
+
+        $(this).toggleClass(activeclasslist);
+        $("i.custom-i-arrow", this).toggleClass("fa-angle-down fa-angle-right");
+        $(this).siblings("ul.nested").toggle("slow");
+
+
+    });
+    // span on hover
+    $("#custom_chipsetpecs_treeview .custom-li-span").hover(function(){
+        $(this).toggleClass("border");
+    });
+    
+
+
+
+
+    $("#custom_chipsetspec_search_input").on("input", function(){
+
+       let searchString = $(this).val();
+
+       if(searchString.length <= 0) {
+        $("#custom_chipsetpecs_treeview :hidden").show("slow");
+        $("#custom_chipsetpecs_treeview .custom-i-down").removeClass("fa-angle-down fa-angle-right").addClass("fa-angle-down");
+        $("#custom_chipsetpecs_treeview .custom-i-right").removeClass("fa-angle-down fa-angle-right").addClass("fa-angle-right");
+        
+        // $("#custom_chipsetpecs_treeview .custom-nested-right").removeClass("grey lighten-3 font-weight-bold border border-dark");
+        $("#custom_chipsetpecs_treeview .custom-i-right").parent(".custom-li-span").removeClass(activeclasslist);
+        $("#custom_chipsetpecs_treeview .custom-i-down").parent(".custom-li-span").addClass(activeclasslist);
+        $("#custom_chipsetpecs_treeview .custom-nested-right").hide("slow");
+        return;
+       }
+
+       $("#custom_chipsetpecs_treeview ul li").each(function(i, val){
+
+        if(searchString.length > 0) {
+            let currentName = $(val).text();
+            if(currentName.toUpperCase().indexOf(searchString.toUpperCase()) > 1) {
+                $(val).parent("ul.nested").show("slow");
+                $(val).parent("ul.nested").siblings("span.custom-li-span").children("i.custom-i-arrow").removeClass("fa-angle-right").addClass("fa-angle-down");
+                $(val).show("slow");
+
+            } else {
+                $(val).hide("slow");
+            }
+        } else {
+            $(val).show("slow");
+        }
+
+        $(":hidden", this).parent("ul.nested").siblings("span.custom-li-span").children("i.custom-i-arrow").removeClass("fa-angle-down").addClass("fa-angle-right");
+        $(this).not(":hidden").parent("ul.nested").siblings("span.custom-li-span").children("i.custom-i-arrow").removeClass("fa-angle-right").addClass("fa-angle-down");
+
+
+       });
+
+
+    });
+
+    // delete toggle
+    $("#custom_chipsetspec_delete_switch").on("click", function(){
+        if($(this).prop("checked")){
+            let htmlstr = '<i class="fas fa-times float-right mr-2 red-text custom-chipsetspec-delete-btn"></i>';
+            $("#custom_chipsetpecs_treeview .custom-li-span0").append(htmlstr);
+            $(".custom-chipsetspec-delete-btn").on("click", function(){
+                $(".return_page").val(window.location.pathname);
+                $("#custom_chipsetspec_data_level").val($(this).parent("span.custom-li-span0").attr("data-level"));
+                $("#custom_chipsetspec_data_pk").val($(this).parent("span.custom-li-span0").attr("data-pk"));
+                console.log($("#custom_chipsetspec_data_level").val())
+                $("#custom_chipsetspec_delete_btn").prop("disabled", false).click();
+            });
+        } else {
+            $(".custom-chipsetspec-delete-btn").remove();
+            $(".return_page").val('');
+            $("#custom_chipsetspec_data_level").val('');
+            $("#custom_chipsetspec_data_pk").val('');
+            $("#custom_chipsetspec_delete_btn").prop("disabled", true);
+        }
+    });
+
+    // link
+    $(".custom-li-span-link-new2").on("click", function(){
+        // window.location = "{% url 'index' %}";
+        window.location = "{% url 'admin_attributes_specifications' %}/chipsets/" + $(this).attr("data-pk");
+    });
+
+});
+</script>

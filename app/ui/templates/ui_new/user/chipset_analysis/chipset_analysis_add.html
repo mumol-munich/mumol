@@ -1,0 +1,31 @@
+{% extends "ui_new/base.html" %}
+
+
+{% block title %}
+ChipsetAnalysisAdd - {{title}}
+{% endblock %}
+
+{% block body %}
+
+{% include 'ui_new/user/projects/projects_link.html' %}
+
+{% include 'ui_new/user/breadcrumbs/breadcrumbs.html' %}
+
+{% include 'ui_new/messages.html' %}
+
+
+<div class="container">
+    {% include 'ui_new/user/analysis/chipset_analysis_stepper.html' %}
+
+    {% if chipsetspec %}
+        {% include 'ui_new/user/analysis/chipset_analysis_datapoints.html' %}
+    {% endif %}
+
+</div>
+<script type="text/javascript">
+$(document).ready(function(){
+    HighlightProjectActive("{{project_pk}}");
+});
+</script>
+
+{% endblock %}

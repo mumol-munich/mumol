@@ -1,0 +1,20 @@
+{% load filters %}
+{% if 'gene' in current_page %}
+    {% if current_page == 'add_geneanalysis' %}
+        <li class="breadcrumb-item"><strong><i class="fas fa-plus mx-1"></i>Gene Analysis</strong></li>
+    {% else %}
+        <li class="breadcrumb-item"><a href="{% url 'analysis_genes_add_remove' sample.pk %}"><strong>{{'geneanalyses'|set_icons}}Gene Analysis</strong></a></li>
+        {% if current_page == 'add_geneanalysis_form' %}
+            <li class="breadcrumb-item"><strong>{{'geneanalysis'|set_icons}}{{genespec.get_name}}</strong></li>
+        {% endif %}
+    {% endif %}
+{% elif 'chipset' in current_page %}
+    {% if current_page == 'add_chipsetanalysis' %}
+    <li class="breadcrumb-item"><strong><i class="fas fa-plus mx-1"></i>Chipset Analysis</strong></li>
+    {% else %}
+    <li class="breadcrumb-item"><a href="{% url 'analysis_chipsets_add_remove' sample.pk %}"><strong>{{'chipsetanalyses'|set_icons}}Chipset Analysis</strong></a></li>
+    {% if current_page == 'add_chipsetanalysis_form' %}
+        <li class="breadcrumb-item"><strong>{{'chipsetanalysis'|set_icons}}{{chipsetspec.get_name}}</strong></li>
+    {% endif %}
+    {% endif %}
+{% endif %}

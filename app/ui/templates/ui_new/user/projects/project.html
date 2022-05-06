@@ -1,0 +1,26 @@
+{% extends "ui_new/base.html" %}
+
+
+{% block title %}
+Project - {{title}}
+{% endblock %}
+
+{% block body %}
+
+{% include 'ui_new/user/projects/projects_link.html' %}
+
+{% include 'ui_new/user/breadcrumbs/breadcrumbs.html' %}
+
+{% include 'ui_new/messages.html' %}
+
+{{project}}
+
+<script>
+    $(document).ready(function(){
+        
+        HighlightProjectActive("{{project.pk}}");
+        
+    });
+</script>
+
+{% endblock %}

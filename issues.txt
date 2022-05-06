@@ -1,0 +1,27 @@
+* patient and sample form (columns custom order)
+
+## * chipset spec genes order alphabetically.
+
+## * genes select alphabetically.
+** chipset form
+
+** medver python installation failed (not locally)
+
+* tour
+
+#####################################
+# paper
+* graphic full data model
+* upload to github
+* upload nngm version as well to github
+
+# webpage
+* Query page: all columns from patient and sample tables
+* chipset analysis: Fixed header in chipset
+* patient form ordering
+* sample form ordering
+* gene order alphabetically
+* deleting patient mess up the table
+* deleting sample mess up the table?
+* deleting in query page as well?
+* upload file chipset section. may be others?

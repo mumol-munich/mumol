@@ -1,0 +1,86 @@
+{% extends "ui_new/base.html" %}
+{% load filters %}
+
+{% block title %}
+SortSampleSpecifications - {{title}}
+{% endblock %}
+
+{% block body %}
+
+{% include 'ui_new/admin/projects/projects_link.html' %}
+
+{% include 'ui_new/messages.html' %}
+<div class="container">
+    <div class="row">
+        <div class="col-7">
+            <ul id="custom_samplespec_dpts_list"></ul>
+            
+            <form method="post" action="{% url 'sample_specifications_sort' project_pk %}">
+                {% csrf_token %}
+                <h3>Sample Specifications</h3>
+                <br>
+                <ul id="samplespec_list" class="list-group">
+                    {% for dpt in samplespec.sampledpts_samplespec.all|dpt_exclude_none %}
+                        <li data-pk="{{dpt.pk}}" class="list-group-item">{{dpt.datapointtype.name}}</li>
+                    {% endfor %}
+                </ul>
+
+                <div class="form-group">
+                    <input type="hidden" id="sampledpt_pks" name="sampledpt_pks" value="">
+                    <button class="btn custom-button-color4" type="submit">Submit</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script type="text/javascript">
+$(document).ready(function(){
+
+    HighlightProjectActive("{{project_pk}}");
+
+    $(".return_page").val(window.location.pathname);
+
+    $("#samplespec_list li").append("<div class='d-inline float-right'><button type='button' class='samplespec_up_btn samplespec_sort_btn'><i class='fas fa-arrow-up'></i></button><button type='button' class='samplespec_down_btn samplespec_sort_btn'><i class='fas fa-arrow-down'></i></button></div>")
+
+    $(".samplespec_up_btn").on("click", function(){
+        var tmpli = $(this).parents("li");
+        var tmpli0 = tmpli.prev();
+        $(tmpli).parents("ul").find("li").each(function(){
+            $(this).removeClass("active");
+        });
+        $(tmpli).addClass("active");
+        if(tmpli0) {
+            tmpli.insertBefore(tmpli0);
+        }
+    });
+    $(".samplespec_down_btn").on("click", function(){
+        var tmpli = $(this).parents("li");
+        var tmpli0 = tmpli.next();
+        $(tmpli).parents("ul").find("li").each(function(){
+            $(this).removeClass("active");
+        });
+        $(tmpli).addClass("active");
+        if(tmpli0) {
+            tmpli.insertAfter(tmpli0);
+        }
+    });
+
+    $(".samplespec_sort_btn").on("click", function(){
+        var sampledpt_pks = [];
+        $("#samplespec_list li").each(function(){
+            sampledpt_pks.push($(this).attr("data-pk"));
+        });
+        $("#sampledpt_pks").val(String(sampledpt_pks));
+    });
+
+    $("#samplespec_list li").on("click", function(){
+        $(this).parents("ul").find("li").removeClass("active");
+        $(this).addClass("active");
+    });
+
+
+});
+</script>
+{% endblock %}
+

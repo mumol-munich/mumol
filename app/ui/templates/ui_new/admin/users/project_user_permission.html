@@ -1,0 +1,89 @@
+{% load crispy_forms_tags %}
+
+<!-- <form method="post" class="text-center" action="{% url 'index' %}"> -->
+    
+    <!-- Central Modal Small -->
+    <div class="modal fade" id="add_remove_userpermission" tabindex="-1" role="dialog" aria-labelledby="add_remove_userpermission_label" aria-hidden="true">
+
+        <!-- Change class .modal-sm to change the size of the modal -->
+        <div class="modal-dialog" role="document">
+
+
+            <div class="modal-content">
+                <div class="modal-header text-left">
+                    <h4 class="modal-title w-100" id="add_remove_userpermission_label">User access to project <strong>{{project.name}}</strong></h4>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <div class="d-flex align-items-center justify-content-center">
+
+                        <div class="text-left font-weight-bolder w-75">
+                            
+                            <form method="post" class="" action="{% url 'project_users_add_remove' project.pk %}">
+                                {% csrf_token %}
+                                <div class="form-group">
+                                    <label for="custom_add_users">Add Users to the project</label>
+                                    <select name="custom_add_users" id="custom_add_users" class="form-control" multiple>
+                                        <option></option>
+                                        {% for o in otherusers %}
+                                        <option value="{{o.pk}}" data-toggle="tooltip" title="{{o.email}}">{{o.username}}</option>
+                                        {% endfor %}
+                                    </select>
+                                </div>
+                                <button type="submit" class="btn btn-sm custom-button-color1">Submit</button>
+                                <input type="hidden" name="access_type" value="add">
+                                <input type="hidden" class="return_page" name="return_page" value="">
+                            </form>
+
+                            <br>
+
+                            <form method="post" class="" action="{% url 'project_users_add_remove' project.pk %}">
+                                {% csrf_token %}
+                                <div class="form-group">
+                                    <label for="custom_remove_users">Remove Users from the project</label>
+                                    <select name="custom_remove_users" id="custom_remove_users" class="form-control" multiple>
+                                        <option></option>
+                                        {% for o in project.users.all %}
+                                        <option value="{{o.pk}}" data-toggle="tooltip" title="{{o.email}}">{{o.username}}</option>
+                                        {% endfor %}
+                                    </select>
+                                </div>
+                                <button type="submit" class="btn btn-sm custom-button-color1">Submit</button>
+                                <input type="hidden" name="access_type" value="remove">
+                                <input type="hidden" class="return_page" name="return_page" value="">
+                            </form>
+                    
+                        </div>
+
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn custom-button-color2 btn-sm" data-dismiss="modal">Cancel</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+<!-- </form> -->
+<!-- Central Modal Small -->
+
+<script type="text/javascript">
+    $('#custom_add_users').on('shown.bs.modal', function() {
+      $('#id_name_gene').focus();
+    })
+
+    
+    $("#custom_add_users").select2({
+        width: "100%",
+        placeholder: "Add users to project",
+        allowClear: true,
+        closeOnSelect: false
+    });
+    $("#custom_remove_users").select2({
+        width: "100%",
+        placeholder: "Remove users from project",
+        allowClear: true,
+        closeOnSelect: false
+    });
+</script>

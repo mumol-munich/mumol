@@ -1,0 +1,15 @@
+import sys
+
+# init stuff
+if sys.argv[1] == 'runserver':
+    from .admin_user import *
+
+# controller imports
+from .controller.index import index, view_404
+from .controller.registration import registration
+from .controller.projects import projects_view_user, project_view_user, projects_view, projects_add_remove, project_view, project_users_add_remove
+from .controller.attributes import admin_attributes_method_add_remove, admin_attributes_gene_add_remove, admin_datapoints_types_add_remove, admin_attributes_methods, admin_attributes_method, admin_attributes_genes, admin_attributes_gene, admin_attributes_genespec_add_remove, admin_attributes_chipsetspec_add_remove, admin_attributes_specifications, admin_attributes_gene_specification, admin_attributes_specdpt_add_remove, admin_attributes_chipset_specification, admin_attributes_confdpt_add_remove, admin_attributes_datapointtypes, admin_attributes_patientspec_add_remove, admin_attributes_samplespec_add_remove, admin_attributes_specdpt_sort, admin_attributes_confdpt_sort
+from .controller.patients import patients_view_user, patients_add_remove, patient_view_user
+from .controller.samples import samples_view_user, samples_overview_add_remove, sample_view_user, samples_add_remove
+from .controller.specification import gene_specifications_remove, gene_specifications_add, chipset_specifications_add, chipset_specifications_remove, patient_specifications_add, sample_specifications_add, patient_specifications_sort, sample_specifications_sort
+from .controller.analysis import analysis_genes_view, analysis_genes_add_remove, analysis_genes_overview_remove, analysis_chipsets_view, analysis_chipsets_add_remove, analysis_chipsets_overview_remove, analysis_chipsets_upload_download

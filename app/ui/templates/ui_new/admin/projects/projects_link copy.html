@@ -1,0 +1,36 @@
+{% load filters %}
+
+{% if project_add_allow %}
+    {% include 'ui_new/admin/projects/project_add.html' %}
+{% endif %}
+
+<ul class="nav nav-tabs" id="project_link" role="navigation">
+    
+    {% for project in projects %}
+    <li class="nav-item">
+            <a class="nav-link btn-light mr-1" href="{% url 'project_view' project.pk %}" role="tab" data-project_pk="{{project.pk}}" style="display:inline-block"><strong>{{ 'project'|set_icons }}{{project.name}}</strong></a>
+            <!-- <button type="button" class="btn-link text-danger">
+                <i class="fas fa-xs fa-times px-2 custom-modal-btn" data-project_pk="{{project.pk}}" data-project_name="{{project.name}}" data-toggle="modal" data-target="#remove_project"></i>
+            </button> -->
+        </li>
+        {% endfor %}
+
+    {% if project_link_allow %}
+    
+        
+        <li class="nav-item">
+            <a class="nav-link" href="#" data-toggle="modal" data-target="#add_project" role="tab"><i class="fas fa-plus"></i></a>
+        </li>
+
+        
+        {% include 'ui_new/admin/projects/project_remove.html' %}
+        {% include 'ui_new/admin/users/project_user_permission.html' %}
+        
+
+        <li class="nav-item ml-auto custom-project-permission-li">
+            <a class="nav-link custom-button-color2" href="#" data-toggle="modal" data-target="#add_remove_userpermission" style="display:inline-block;">User Permissions</a>
+            <a class="nav-link custom-button-color3" href="#" data-toggle="modal" data-target="#remove_project" style="display:inline-block;">Delete</a>
+        </li>
+    {% endif %}
+
+</ul>

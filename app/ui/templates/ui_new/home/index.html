@@ -1,0 +1,60 @@
+{% extends "ui_new/base.html" %}
+{% load static %}
+
+{% block title %}
+Home - {{title}}
+{% endblock %}
+
+
+{% block body %}
+
+{% include "ui_new/messages.html" %}
+
+<div class="container-fluid">
+    <div class="d-flex justify-content-center border border-light p-5">
+        <img src="{% static 'images/graphical_abstract.png' %}" alt="Italian Trulli">
+    </div>
+</div>
+
+
+<script type="text/javascript">
+$("document").ready(function(){
+    // if("{{project_redirect}}" == "True") {
+    //     let latest_project_id = localStorage.getItem('latest_project_id');
+    //     let first_project_id = "{{first_project_id}}";
+    //     let latest_project_user = localStorage.getItem('latest_project_user'); 
+
+    //     if("{{user.pk}}" == latest_project_user){
+    //         if(latest_project_id) {
+    //             window.location = "{% url 'projects_view_user' %}/" + latest_project_id + "/patients";
+    //         } else {
+    //             localStorage.removeItem('latest_project_id');
+    //             localStorage.removeItem('latest_project_user');
+    //             window.location = "{% url 'index' %}";
+    //         }
+    //     } else {
+    //         if(first_project_id) {
+    //             window.location = "{% url 'projects_view_user' %}/" + first_project_id + "/patients";
+    //         } else {
+    //             localStorage.removeItem('latest_project_id');
+    //             localStorage.removeItem('latest_project_user');
+    //             window.location = "{% url 'index' %}";
+    //         }
+    //     }
+
+    //     // if(latest_project_id && "{{user.pk}}" == latest_project_user) {
+    //     //     window.location = "{% url 'projects_view_user' %}/" + latest_project_id + "/patients";
+    //     // } else {
+    //     //     localStorage.removeItem('latest_project_id');
+    //     //     localStorage.removeItem('latest_project_user');
+    //     //     window.location = "{% url 'index' %}";
+    //     // }
+    // }
+    var redirect_id = ProjectRedirectFunc("{{project_redirect}}", "{{first_project_id}}");
+    if(redirect_id) {
+        window.location.href = "{% url 'projects_view_user' %}/" + redirect_id + "/patients";
+    }
+});
+</script>
+
+{% endblock %}

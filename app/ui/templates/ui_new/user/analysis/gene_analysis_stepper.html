@@ -1,0 +1,123 @@
+{% load filters %}
+<div class="rounded border border-dark mb-2 p-4">
+
+  <div class="row">
+    <div class="col-md-12">
+
+      <ul class="stepper stepper-horizontal" id="custom_stepper_horizontal_ul">
+
+        <li class="active">
+          <a href="#!">
+            <span class="circle">1</span>
+            <span class="label">Analysis Method</span>
+          </a>
+        </li>
+
+        <li>
+          <a href="#!">
+            <span class="circle">2</span>
+            <span class="label">Gene</span>
+          </a>
+        </li>
+
+        <li>
+          <a href="#!">
+            <span class="circle">3</span>
+            <span class="label">Results</span>
+          </a>
+        </li>
+
+      </ul>
+
+    </div>
+  </div>
+  <div class="row">
+    <div class="col">
+      <div class="custom-color-color5 lighten-3 p-3 mx-2 custom-stepper-div">
+        <label for="id_method">Select an Analysis Method</label>
+        <select name="id_method" id="id_method" required>
+        </select>
+      </div>
+    </div>
+    <div class="col">
+      <div class="custom-color-color5 lighten-3 p-3 mx-2 custom-stepper-div">
+        <label for="id_gene">Select a Gene</label>
+        <select name="id_gene" id="id_gene" required>
+        </select>
+      </div>
+    </div>
+    <div class="col">
+      <div class="custom-color-color5 lighten-3 p-3 mx-2 custom-stepper-div">
+        <label for="id_status">Select Result</label>
+        <select name="id_status" id="id_status" required>
+        </select>
+      </div>
+    </div>
+  </div>
+</div>
+
+{% if genespec %}
+  <input type="hidden" id="custom_genespec_input" value='{"method__name" : "{{genespec.method.name}}", "gene__name": "{{genespec.gene.name}}", "status" : "{{genespec.status}}"}'>
+{% endif %}
+
+<script type="text/javascript">
+$(document).ready(function(){
+
+  let genespecs = {{genespecs|safe}};
+
+  if(genespecs.length > 0) {
+
+    // select2
+    $("#id_method").select2({
+        width: "100%",
+        placeholder: "Select Analysis Method",
+        allowClear: false
+    });
+  
+    $("#id_gene").select2({
+        width: "100%",
+        placeholder: "Select Gene",
+        allowClear: false
+    });
+  
+    $("#id_status").select2({
+        width: "100%",
+        placeholder: "Select Result",
+        allowClear: false
+    });
+    
+  } else {
+    let genespec_info = JSON.parse($("#custom_genespec_input").val());
+    $("#id_method").prop("disabled", true).html('<option value="" selected>' + genespec_info.method__name + '</option>');
+    $("#id_gene").prop("disabled", true).html('<option value="" selected>' + genespec_info.gene__name + '</option>');
+    $("#id_status").prop("disabled", true).html('<option value="" selected>' + genespec_info.status + '</option>');
+    
+    // stepper completed
+    $("#custom_stepper_horizontal_ul").find("li").removeClass().addClass("completed");
+
+    // remove color
+    $(".custom-stepper-div").removeClass("custom-color-color5 lighten-3");
+
+    // select2
+    $("#id_method").select2({
+        width: "100%",
+        // placeholder: "Select Analysis Method",
+        allowClear: false
+    });
+  
+    $("#id_gene").select2({
+        width: "100%",
+        // placeholder: "Select Gene",
+        allowClear: false
+    });
+  
+    $("#id_status").select2({
+        width: "100%",
+        // placeholder: "Select Result",
+        allowClear: false
+    });
+  }
+  
+  
+});
+</script>

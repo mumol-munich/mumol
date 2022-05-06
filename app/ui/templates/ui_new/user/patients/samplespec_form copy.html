@@ -1,0 +1,129 @@
+{% load crispy_forms_tags %}
+{% load filters %}
+
+{% if sampledpts|arraycount %}
+<span id="customsam_add_dptsinput_span"></span>
+{% endif %}
+
+
+{% verbatim %}
+<script id="add_dptsinput" type="text/x-handlebars-template">
+
+<!-- varchar -->
+{{#ifEquals dpttype "input"}}
+<div class="form-group">
+    <label for="customsam_{{pk}}">{{name}}</label>
+    <input type="text" class="form-control custom-dpts-value custom-dpts-input" id="customsam_{{pk}}" name="customsam_{{pk}}">
+    <small>{{helptext}}</small>
+</div>
+{{/ifEquals}}
+
+<!-- integer -->
+{{#ifEquals dpttype "select"}}
+<div class="form-group">
+    <label for="customsam_{{pk}}">{{name}}</label>
+    <select class="form-control custom-dpts-value custom-dpts-select" id="customsam_{{pk}}" name="customsam_{{pk}}">
+        <option value="" selected disabled>Please select a value</option>
+        {{#each options}}
+            <option value="{{this}}">{{this}}</option>
+        {{/each}}
+    </select>
+    <small>{{helptext}}</small>
+</div>
+{{/ifEquals}}
+     
+
+</script>
+{% endverbatim %}
+
+<script type="text/javascript">
+$(document).ready(function(){
+
+    let sampledpts = {{sampledpts|safe}};
+    let specdpts_val_def = {};
+    let customsam_pks = [];
+
+    // handlebars
+    let add_dptsinput = Handlebars.compile($("#add_dptsinput").html());
+
+    Handlebars.registerHelper('ifEquals', function(arg1, arg2, options) {
+        return (arg1 == arg2) ? options.fn(this) : options.inverse(this);
+    });
+
+    $.each(sampledpts, function(i, val){
+        mm = val;
+        customsam_pks.push(val.pk);
+
+        let selectoptions, dpttype;
+        if (val.datapointtype__options.length > 0) {
+            selectoptions = val.datapointtype__options.split(',');
+        }  else {
+            selectoptions = [];
+        }
+
+        if(val.datapointtype__type == "boolean" || val.datapointtype__type == "select" || val.datapointtype__type == "multiple") {
+            dpttype = "select";
+        } else {
+            dpttype = "input";
+        }
+
+        $("#customsam_add_dptsinput_span").append(
+            add_dptsinput({
+                'pk': val.pk, // datapointtype pk
+                'default': val.default,
+                'dpttype': dpttype,
+                'name': val.datapointtype__name,
+                'helptext': val.datapointtype__helptext,
+                'options': selectoptions
+            }
+        ));
+
+        let that = $("#customsam_" + val.pk);
+
+        // add mandatory info
+        if (val.mandatory) {
+            that.prop("required", true);
+            // add star
+            that.siblings("label").append(' <span class="red-text font-weight-bold">*</span>');
+        }
+
+        // select input
+        if(dpttype == "select") {
+            // default
+            if(val.default) {
+                that.val(val.default).trigger("change");
+            }
+            // multiple
+            if(val.datapointtype__type == "multiple") {
+                that.prop("multiple", true);
+                that.val(val.default.split(',')).trigger("change");
+            }
+        } else {
+            // default
+            if(val.default) {
+                that.val(val.default);
+            }
+        }
+
+        // add numeric input
+        if (val.datapointtype__type == "integer" || val.datapointtype__type == "numeric") {
+            
+            that.prop("type", "number");
+
+            if(val.datapointtype__type == "integer") {
+                that.prop("step", "1");
+            } else {
+                that.prop("step", "0.0001") // just arbitrary
+            }
+        }
+
+        // add values to dict
+        specdpts_val_def["customsam_" + val.pk] = $(that).val();
+
+    });
+
+    // push customsam_pks
+    $("#customsam_pks").val(String(customsam_pks));
+
+});
+</script>

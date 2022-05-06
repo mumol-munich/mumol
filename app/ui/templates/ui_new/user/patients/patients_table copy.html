@@ -1,0 +1,189 @@
+{% load filters %}
+
+<div class="custom-control custom-switch mb-2">
+    <div class="float-right">
+        <input type="checkbox" class="custom-control-input" id="custom_project_patient_switch" checked>
+        <label class="custom-control-label" for="custom_project_patient_switch">Project Specific</label>
+    </div>
+</div>
+
+<table id="patients_table" class="table table-bordered" cellspacing="0" width="100%">
+    <thead>
+        <tr>
+            <th class="th-sm"></th>
+            <th class="th-sm">pk</th>
+            <!-- <th class="th-sm" data-name="id_projectid">Project Specific ID</th> -->
+            <th class="th-sm" data-name="id_projectid" data-toggle="tooltip" title="Patient ID specific to the current project">Patient ID</th>
+            <th class="th-sm" data-name="id_firstname">First Name</th>
+            <th class="th-sm" data-name="id_lastname">Last Name</th>
+            <th class="th-sm" data-name="id_dateofbirth">Date of Birth</th>
+            <th class="th-sm" data-name="id_otherid" data-toggle="tooltip" title="Patient ID from other projects">Other IDs</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for patient in patients %}
+
+        <tr>
+            <td></td>
+            <td>{{patient.projectid_patient.all | patient_projectid_pk:project_pk }}</td>
+            <!-- <td>{{'patient'|set_icons}}{{patient.projectid_patient.all | patient_projectid_link:project_pk }}</td> -->
+            <td>
+                {% with patient.projectid_patient.all|patient_projectid_link:project_pk as project_patient_id %}
+                    {% if project_patient_id %}
+                        {{'patient'|set_icons}}{{project_patient_id}}
+                    {% endif %}
+                {% endwith %}
+            </td>
+            <td>{{patient.firstname}}</td>
+            <td>{{patient.lastname}}</td>
+            <td>{{patient.get_dateofbirth}}</td>
+            <!-- <td>{{patient.projectid_patient.all | patient_projectid_link_exclude:project_pk }}</td> -->
+            <td>
+                {% with patient.projectid_patient.all|patient_projectid_link_exclude:project_pk as projectids %}
+                    {% for projectid in projectids %}
+                        {{'patient'|set_icons}}<a href="{% url 'patient_view_user' projectid.pk %}" class="btn-link text-primary"><u>{{projectid.projectid}}</u></a>(<a href="{% url 'patients_view_user' projectid.project_id %}" class="btn-link text-primary">{{projectid.project.name}}</a>)<br>
+                    {% endfor %}
+                {% endwith %}
+            </td>
+        </tr>
+        {% endfor %}
+    </tbody>
+    <!-- <tfoot>
+        <tr>
+            <th></th>
+            <th>First Name</th>
+            <th>Last Name</th>
+            <th>Date of Birth</th>
+            <th>Project ID</th>
+            <th>Other IDs</th>
+        </tr>
+    </tfoot> -->
+</table>
+
+<style>
+    #custom_project_patient_switch:checked+.custom-control-label::before {
+    background-color: red;
+    border: red;
+
+}
+</style>
+
+<script>
+$(document).ready(function(){
+
+    mytable = $("#patients_table").DataTable({
+        // dom: 'Bfrtip',
+        dom: "<'row'<'col-sm-12 col-md-5'B><'col-sm-12 col-md-2'l><'col-sm-12 col-md-5'f>>" + "<'row'<'col-sm-12'tr>>" + "<'row'<'col-sm-12 col-md-5'i><'col-sm-12 col-md-7'p>>",
+        buttons: [
+            { extend: 'selectNone', attr: { id: 'custom_selectnone_btn', class: 'btn btn-sm custom-button-color2' } },
+            { extend: 'csvHtml5', attr: { class: 'btn btn-sm custom-button-color2' } },
+            { text: 'Delete', attr: { id: 'custom_patient_delete_btn', 'data-toggle': 'modal', 'data-target': '#remove_patients', class: 'btn btn-sm custom-button-color3'}},
+        ],
+        pagingType: "full_numbers",
+        lengthMenu: [
+            [10, 25, 50, -1],
+            [10, 25, 50, "All"]
+        ],
+        columnDefs: [{
+            orderable: false,
+            className: 'select-checkbox select-checkbox-all',
+            targets: 0
+        },
+        {
+            targets: 1,
+            visible: false,
+        }],
+        select: {
+            style: 'multi',
+            selector: 'td:first-child'
+        },
+
+    });
+
+    // delete button
+    mytable.button("#custom_patient_delete_btn").enable(false);
+    mytable.on("select deselect", function(){
+        let selectedRows = mytable.rows({selected: true});
+        mytable.button("#custom_patient_delete_btn").enable(selectedRows.count() > 0);
+        let pkval = [];
+        $.each(selectedRows.data(), function(i, val){
+            if(val[1] !== "") {
+                pkval.push(val[1]) // pushing hidden pk value in column 2: index 1
+            }
+        });
+        if(pkval.length <= 0) {
+            pkval = "";
+        }
+        
+        $("#projectid_pks").val(pkval);
+    });
+    $("#custom_patient_delete_btn").on("click", function(){
+        let projectid_pks = $("#projectid_pks").val();
+        if (projectid_pks) {
+            projectid_pks = projectid_pks.split(',').length;
+        } else {
+            projectid_pks = projectid_pks.length;
+        }
+        $('#custom_selected_patients_count_span').html(projectid_pks);
+    });
+
+
+    // search query
+    let searcharray = ["id_firstname", "id_lastname", "id_dateofbirth", "id_projectid"];
+    $.each(searcharray, function(i, val) {
+        $("#" + val).on("change input", function(){
+            let searchvar = $(this).val();
+
+            mytable.columns(
+                $("#patients_table").find("th[data-name='" + val + "']").index() + 1 // considering hidden pk column
+            ).search(searchvar).draw();
+        });
+    });
+
+    // add patients
+    $("#custom_add_patient_btn").on("click", function(){
+
+        
+
+        let displayrows = mytable.page.info().recordsDisplay;
+        if (displayrows > 0) {
+            for(let i=0; i<searcharray.length; i++){
+                if(searcharray[i] == "id_projectid") {
+                    continue;
+                }
+                if($("#" + searcharray[i]).val().length <= 0) {
+                    alert("Please enter requierd fields")
+                    return;
+                }
+            }
+            alert("Patient already exist!");
+            return;
+        } else {
+            $("#custom_add_patient_btn2").prop("disabled", false).click();
+        }
+    });
+
+    // project specific patients
+    mytable.columns(
+        $("#patients_table").find("th[data-name='id_projectid']").index() + 1 // considering pk
+    ).search( '^(?!\s*$).+', true, false ).draw();
+    $("#custom_project_patient_switch").on("click", function(){
+        if($(this).prop("checked")) {
+            mytable.columns(
+                $("#patients_table").find("th[data-name='id_projectid']").index() + 1 // considering pk
+                ).search( '^(?!\s*$).+', true, false ).draw();
+            } else {
+            mytable.columns(
+                $("#patients_table").find("th[data-name='id_projectid']").index() + 1 // considering pk
+            ).search('').draw();
+        }
+    });
+
+    // // projectid anchor
+    // $("#patients_table tbody a[href='#'").on("click", function(){
+    //     alert("Selected patient is not registered to current project");
+    //     return;
+    // });
+
+});
+</script>

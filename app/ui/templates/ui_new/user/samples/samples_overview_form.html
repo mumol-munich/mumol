@@ -1,0 +1,64 @@
+{% load crispy_forms_tags %}
+
+<h4 class='mb-3'>Register Patient Sample</h4>
+<form method="post" action="{% url 'samples_overview_add_remove' project_pk %}" id="custom_patient_sample_form">
+    {% csrf_token %}
+    {{formpatient | crispy}}
+    <div class="form-group">
+        {{formprojectid.projectid | as_crispy_field}}
+        <small class="red-text">If project id is not specified, an unique id is assigned automatically</small>
+    </div>
+
+    <div class="form-group">
+        {% include 'ui_new/user/patients/patientspec_form.html' %}
+        <input type="hidden" id="custompat_pks" name="custompat_pks" value="[]">
+    </div>
+
+    <hr>
+
+    {{formsample | crispy}}
+
+    <div class="form-group">
+        {% include 'ui_new/user/patients/samplespec_form.html' %}
+        <input type="hidden" id="customsam_pks" name="customsam_pks" value="[]">
+    </div>
+
+    <div class="custom-control custom-radio"  data-toggle="tooltip" title="redirects to adding gene analysis. The selection will be retained for further addition of samples unless changed otherwise.">
+        <input type="radio" class="custom-control-input" id="custom_return_gene" name="custom_return_page">
+        <label class="custom-control-label" for="custom_return_gene">Gene Analysis</label>
+    </div>
+    <div class="custom-control custom-radio"  data-toggle="tooltip" title="redirects to adding chipset analysis. The selection will be retained for further addition of samples unless changed otherwise.">
+        <input type="radio" class="custom-control-input" id="custom_return_chipset" name="custom_return_page">
+        <label class="custom-control-label" for="custom_return_chipset">Chipset Analysis</label>
+    </div>
+
+    <div class="form-group mt-2">
+        <input type="hidden" name="return_page" class="return_page" value="">
+        <input type="hidden" name="access_type" value="add">
+        <button type="button" class="btn btn-sm custom-button-color1" id="custom_add_patient_sample_btn">Submit</button>
+        <button id="custom_add_patient_sample_btn2" type="submit" style="display:none;" disabled></button>
+    </div>
+
+</form>
+
+<script>
+$(document).ready(function(){
+    $("#custom_patient_sample_form").find("input").addClass("form-control-sm");
+    
+    // check get
+    let getstr = window.location.search.substr(1);
+
+    if(getstr != "") {
+        $("#custom_patient_sample_form").attr("action", $("#custom_patient_sample_form").attr("action") + '?' + getstr);
+        if(getstr.indexOf('genespec=') > -1) {
+            $("#custom_return_gene").prop("checked", true);
+        } else if(getstr.indexOf('chipsetspec=') > -1) {
+            $("#custom_return_chipset").prop("checked", true);
+        }
+    }
+
+    
+
+
+});
+</script>

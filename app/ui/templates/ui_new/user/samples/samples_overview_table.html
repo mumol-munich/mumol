@@ -1,0 +1,160 @@
+{% load filters %}
+
+<div style="overflow:auto; width:100%; position: relative;">
+    <table id="samples_table" class="table table-bordered table-sm table-striped" cellspacing="0" width="100%">
+        <thead>
+            <tr>
+                <th class="th-sm"></th>
+                <th class="th-sm">pk</th>
+                <th class="th-sm" data-name="id_dateofreceipt">Date of Entry</th>
+                <th class="th-sm" data-name="id_projectid">Project Specific ID</th>
+                <th class="th-sm" data-name="id_firstname">First Name</th>
+                <th class="th-sm" data-name="id_lastname">Last Name</th>
+                <th class="th-sm" data-name="id_dateofbirth">Date of Birth</th>
+                {% for patientdpt in samples.last.projectid.patientinfo.patientspec.patientdpts_patientspec.all|dpt_exclude_none %}
+                    <th class="th-sm" data-name="id_patientdpt_{{patientdpt.pk}}">{{patientdpt.datapointtype.name}}</th>
+                {% endfor %}
+                <th class="th-sm" data-name="id_mutation">Gene Analysis</th>
+                <th class="th-sm" data-name="id_mutation">Chipset Analysis</th>
+                {% for sampledpt in samples.last.projectid.project.samplespec.sampledpts_samplespec.all|dpt_exclude_none %} 
+                    <th class="th-sm" data-name="id_sampledpt_{{sampledpt.pk}}">{{sampledpt.datapointtype.name}}</th>
+                {% endfor %}
+            </tr>
+        </thead>
+        <tbody>
+            {% for sample in samples %}
+            <tr>
+                <td></td>
+                <td>{{sample.pk}}</td>
+                <td>
+                    {{'sample'|set_icons}}
+                    <a href="{% url 'sample_view_user' sample.pk %}" class="btn-link text-primary"><u>{{sample.get_samplename}}</u></a>
+                </td>
+                <td>
+                    {{'patient'|set_icons}}
+                    <a href="{% url 'patient_view_user' sample.projectid.pk %}" class="btn-link text-primary">
+                        <u><span class="id_projectid">{{sample.projectid.projectid}}</span></u>
+                    </a> 
+                    <!-- | <i class="far fa-edit custom-projectid-info-get"></i> -->
+                </td>
+                <td><span class="id_firstname">{{sample.projectid.patient.firstname}}</span></td>
+                <td><span class="id_lastname">{{sample.projectid.patient.lastname}}</span></td>
+                <td><span class="id_dateofbirth">{{sample.projectid.get_dateofbirth}}</span></td>
+                {% for datapoint in sample.projectid.patientinfo.datapoints.all %}
+                    <td>{{datapoint.value}}</td>
+                {% endfor %}
+    
+                <td>{{sample.geneanalysis_sample.count}}</td>
+                <td>{{sample.chipsetanalysis_sample.count}}</td>
+                {% for datapoint in sample.sampleinfo.datapoints.all %} 
+                    <td>{{datapoint.value}}</td>
+                {% endfor %}
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+
+
+<script type="text/javascript">
+$(document).ready(function(){
+
+    mytable = $("#samples_table").DataTable({
+        // dom: 'Bflrtip',
+        dom: "<'row'<'col-sm-12 col-md-5'B><'col-sm-12 col-md-2'l><'col-sm-12 col-md-5'f>>" + "<'row'<'col-sm-12'tr>>" + "<'row'<'col-sm-12 col-md-5'i><'col-sm-12 col-md-7'p>>",
+        buttons: [
+            { extend: 'selectNone', attr: { id: 'custom_selectnone_btn', class: 'btn btn-sm custom-button-color2' } },
+            { text: 'Delete', attr: { id: 'custom_patient_sample_delete_btn', 'data-toggle': 'modal', 'data-target': '#remove_samples', class: 'btn btn-sm custom-button-color3'}},
+        ],
+        pagingType: "full_numbers",
+        lengthMenu: [
+            [10, 25, 50, -1],
+            [10, 25, 50, "All"]
+        ],
+        columnDefs: [{
+            orderable: false,
+            className: 'select-checkbox select-checkbox-all',
+            targets: 0
+        },
+        {
+            targets: 1,
+            visible: false,
+        }],
+        select: {
+            style: 'multi',
+            selector: 'td:first-child'
+        },
+    });
+
+    // delete button
+    mytable.button("#custom_patient_sample_delete_btn").enable(false);
+    mytable.on("select deselect", function(){
+        let selectedRows = mytable.rows({selected: true});
+        mytable.button("#custom_patient_sample_delete_btn").enable(selectedRows.count() > 0);
+        let pkval = [];
+        $.each(selectedRows.data(), function(i, val){
+            if(val[1] !== "") {
+                pkval.push(val[1]) // pushing hidden pk value in column 2: index 1
+            }
+        });
+        if(pkval.length <= 0) {
+            pkval = "";
+        }
+        
+        $("#sample_pks").val(pkval);
+    });
+    $("#custom_patient_sample_delete_btn").on("click", function(){
+        let sample_pks = $("#sample_pks").val();
+        if (sample_pks) {
+            sample_pks = sample_pks.split(',').length;
+        } else {
+            sample_pks = sample_pks.length;
+        }
+        $('#customsam_selected_samples_count_span').html(sample_pks);
+    });
+
+    // search query
+    let searcharray = ["id_firstname", "id_lastname", "id_dateofbirth", "id_projectid", "id_dateofreceipt", "id_mutation"];
+    $.each(searcharray, function(i, val) {
+        $("#" + val).on("change input", function(){
+            let searchvar = $(this).val();
+
+            mytable.columns(
+                $("#samples_table").find("th[data-name='" + val + "']").index() + 1 // considering hidden pk column
+            ).search(searchvar).draw();
+        });
+    });
+
+    // add patient sample
+    $("#custom_add_patient_sample_btn").on("click", function(){
+        let return_page = "";
+        // set return page
+        if($("#custom_return_gene").prop("checked")) {
+            return_page = 'analysis_genes_add_remove';
+        } else if($("#custom_return_chipset").prop("checked")) {
+            return_page = 'analysis_chipsets_add_remove';
+        } else {
+            return_page = window.location.pathname;
+        }
+        $(".return_page").val(return_page);
+
+
+        $("#custom_add_patient_sample_btn2").prop("disabled", false).click();
+    });
+
+    // get info
+    $("#samples_table").on("click", ".custom-projectid-info-get", function(){
+        let searcharray = ["id_firstname", "id_lastname", "id_dateofbirth", "id_projectid"];
+        let that = this;
+        $.each(searcharray, function(i, val){
+            $("#" + val).val(
+                $(that).parents("tr").find("span." + val).html()
+            ).trigger("input").trigger("focus");
+        });
+    })
+   
+
+
+
+});
+</script>

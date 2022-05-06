@@ -1,0 +1,86 @@
+{% extends "ui_new/base.html" %}
+{% load filters %}
+
+{% block title %}
+SortPatientSpecifications - {{title}}
+{% endblock %}
+
+{% block body %}
+
+{% include 'ui_new/admin/projects/projects_link.html' %}
+
+{% include 'ui_new/messages.html' %}
+<div class="container">
+    <div class="row">
+        <div class="col-7">
+            <ul id="custom_patientspec_dpts_list"></ul>
+            
+            <form method="post" action="{% url 'patient_specifications_sort' project_pk %}">
+                {% csrf_token %}
+                <h3>Patient Specifications</h3>
+                <br>
+                <ul id="patientspec_list" class="list-group">
+                    {% for dpt in patientspec.patientdpts_patientspec.all|dpt_exclude_none %}
+                        <li data-pk="{{dpt.pk}}" class="list-group-item">{{dpt.datapointtype.name}}</li>
+                    {% endfor %}
+                </ul>
+
+                <div class="form-group">
+                    <input type="hidden" id="patientdpt_pks" name="patientdpt_pks" value="">
+                    <button class="btn custom-button-color4" type="submit">Submit</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script type="text/javascript">
+$(document).ready(function(){
+
+    HighlightProjectActive("{{project_pk}}");
+
+    $(".return_page").val(window.location.pathname);
+
+    $("#patientspec_list li").append("<div class='d-inline float-right'><button type='button' class='patientspec_up_btn patientspec_sort_btn'><i class='fas fa-arrow-up'></i></button><button type='button' class='patientspec_down_btn patientspec_sort_btn'><i class='fas fa-arrow-down'></i></button></div>")
+
+    $(".patientspec_up_btn").on("click", function(){
+        var tmpli = $(this).parents("li");
+        var tmpli0 = tmpli.prev();
+        $(tmpli).parents("ul").find("li").each(function(){
+            $(this).removeClass("active");
+        });
+        $(tmpli).addClass("active");
+        if(tmpli0) {
+            tmpli.insertBefore(tmpli0);
+        }
+    });
+    $(".patientspec_down_btn").on("click", function(){
+        var tmpli = $(this).parents("li");
+        var tmpli0 = tmpli.next();
+        $(tmpli).parents("ul").find("li").each(function(){
+            $(this).removeClass("active");
+        });
+        $(tmpli).addClass("active");
+        if(tmpli0) {
+            tmpli.insertAfter(tmpli0);
+        }
+    });
+
+    $(".patientspec_sort_btn").on("click", function(){
+        var patientdpt_pks = [];
+        $("#patientspec_list li").each(function(){
+            patientdpt_pks.push($(this).attr("data-pk"));
+        });
+        $("#patientdpt_pks").val(String(patientdpt_pks));
+    });
+
+    $("#patientspec_list li").on("click", function(){
+        $(this).parents("ul").find("li").removeClass("active");
+        $(this).addClass("active");
+    });
+
+
+});
+</script>
+{% endblock %}
+

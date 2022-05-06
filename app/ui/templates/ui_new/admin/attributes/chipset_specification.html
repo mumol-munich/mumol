@@ -1,0 +1,153 @@
+{% extends "ui_new/base.html" %}
+{% load filters %}
+
+{% block title %}
+ChipsetSpecification - {{title}}
+{% endblock %}
+
+{% block body %}
+
+{% include 'ui_new/admin/projects/projects_link.html' %}
+{% include 'ui_new/admin/attributes/confdpt_add.html' %}
+{% include 'ui_new/admin/attributes/confdpt_edit.html' %}
+{% include 'ui_new/admin/attributes/confdpt_remove.html' %}
+
+{% include 'ui_new/user/breadcrumbs/breadcrumbs.html' %}
+
+{% include 'ui_new/messages.html' %}
+
+<div class="container">
+    <div class="p-3">
+        <table id="confdpt_table" class="table table-bordered" cellspacing="0" width="100%">
+            <thead>
+                <tr>
+                    <th class="th-sm"></th>
+                    <th class="th-sm">pk</th>
+                    <th class="th-sm">Datapoint Type</th>
+                    <th class="th-sm">Mandatory</th>
+                    <th class="th-sm">Default</th>
+                    <th class="th-sm">Associated Datapoints</th>
+                    <th class="th-sm">Datapoint Type Options</th>
+                    <th class="th-sm">Datapoint Type Helptext</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for confdpt in chipsetspec.confdpts_chipsetspec.all %}
+                    {% if confdpt.datapointtype.name != 'default_none' %}
+                        <tr>
+                            <td></td>
+                            <td>{{confdpt.pk}}</td>
+                            <td>{{confdpt.datapointtype}}</td>
+                            <td>{{confdpt.mandatory}}</td>
+                            <td>{{confdpt.default}}</td>
+                            <td>{{confdpt.datapoint_confdpts.count}}</td>
+                            <td>{{confdpt.datapointtype.options}}</td>
+                            <td>{{confdpt.datapointtype.helptext}}</td>
+                        </tr>
+                    {% endif %}
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+
+<script type="text/javascript">
+    $(document).ready(function(){
+    
+        $(".return_page").val(window.location.pathname);
+    
+        mytable = $("#confdpt_table").DataTable({
+            dom: "<'row'<'col-sm-12 col-md-5'B><'col-sm-12 col-md-2'l><'col-sm-12 col-md-5'f>>" + "<'row'<'col-sm-12'tr>>" + "<'row'<'col-sm-12 col-md-5'i><'col-sm-12 col-md-7'p>>",
+            buttons: [
+                { extend: 'selectNone', attr: { id: 'custom_selectnone_btn', class: 'btn btn-sm custom-button-color2' } },
+                { text: 'Add', attr: { id: 'custom_confdpt_add_btn', 'data-toggle': 'modal', 'data-target': '#add_confdpt', class: 'btn btn-sm custom-button-color2'}},
+                { text: 'Edit', attr: { id: 'custom_confdpt_edit_btn', 'data-toggle': 'modal', 'data-target': '#edit_confdpt', class: 'btn btn-sm custom-button-color2'}},
+                { text: 'Delete', attr: { id: 'custom_confdpt_delete_btn', 'data-toggle': 'modal', 'data-target': '#remove_confdpt', class: 'btn btn-sm custom-button-color3'}},
+            ],
+            pagingType: "full_numbers",
+            lengthMenu: [
+                [10, 25, 50, -1],
+                [10, 25, 50, "All"]
+            ],
+            columnDefs: [{
+                orderable: false,
+                className: 'select-checkbox select-checkbox-all',
+                targets: 0
+            },
+            {
+                targets: [1,6,7],
+                visible: false,
+            }],
+            select: {
+                style: 'multi',
+                selector: 'td:first-child'
+            },
+        });
+    
+        // delete button
+        mytable.button("#custom_confdpt_delete_btn").enable(false);
+        mytable.button("#custom_confdpt_edit_btn").enable(false);
+        mytable.on("select deselect", function(){
+            let selectedRows = mytable.rows({selected: true});
+            mytable.button("#custom_confdpt_delete_btn").enable(selectedRows.count() > 0);
+            mytable.button("#custom_confdpt_edit_btn").enable(selectedRows.count() == 1);
+            let pkval = [];
+            $.each(selectedRows.data(), function(i, val){
+                if(val[1] !== "") {
+                    pkval.push(val[1]) // pushing hidden pk value in column 2: index 1
+                }
+            });
+            if(pkval.length <= 0) {
+                pkval = "";
+            }
+            
+            $("#confdpt_pks").val(pkval);
+        });
+    
+        $("#custom_confdpt_delete_btn").on("click", function(){
+            let confdpt_pks = $("#confdpt_pks").val();
+            if (confdpt_pks) {
+                confdpt_pks = confdpt_pks.split(',').length;
+            } else {
+                confdpt_pks = confdpt_pks.length;
+            }
+            $('#custom_selected_confdpt_count_span').html(confdpt_pks);
+        });
+
+
+        $("#custom_confdpt_edit_btn").on("click", function(){
+            let selectedRows = mytable.rows({selected: true});
+            var selected_pk = selectedRows.data()[0][1];
+
+            $("#name_datapointtype2").val(selectedRows.data()[0][2]);
+            if(selectedRows.data()[0][3] == "True") {
+                $("#id_mandatory2").prop("checked", true);
+            } else {
+                $("#id_mandatory2").prop("checked", false);
+            }
+
+            $("#id_default2").val(selectedRows.data()[0][4]);
+
+            var htmlstr = "";
+            var optiontext = selectedRows.data()[0][6];
+            var helptext = selectedRows.data()[0][7];
+            if(optiontext) {
+                htmlstr += '<small>options: ' + optiontext + '</small><br>';
+            }
+            if(helptext) {
+                htmlstr += '<small>helptext: ' + helptext + '</small>';
+            }
+
+            $("#id_default_text2").html(htmlstr);
+
+            $("#id_confdpt2").val(selected_pk);
+
+
+        })
+    
+    });
+</script>
+    
+
+{% endblock %}

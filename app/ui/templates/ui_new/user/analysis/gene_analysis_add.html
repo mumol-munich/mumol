@@ -1,0 +1,37 @@
+{% extends "ui_new/base.html" %}
+
+
+{% block title %}
+GeneAnalysisAdd - {{title}}
+{% endblock %}
+
+{% block body %}
+
+{% include 'ui_new/user/projects/projects_link.html' %}
+
+{% include 'ui_new/user/breadcrumbs/breadcrumbs.html' %}
+
+{% include 'ui_new/messages.html' %}
+
+<div class="container">
+    {% include 'ui_new/user/analysis/gene_analysis_stepper.html' %}
+
+    {% if genespec %}
+        {% include 'ui_new/user/analysis/gene_analysis_datapoints.html' %}
+    {% endif %}
+
+</div>
+
+<script type="text/javascript">
+    $(document).ready(function(){
+        // $(".return_page").val(window.location.pathname);
+        HighlightProjectActive("{{project_pk}}");
+
+        let genespecs = {{genespecs|safe}};
+
+        if(genespecs.length > 0) {
+            GeneAnalysisSpecificationStepper(genespecs);
+        }
+    });
+</script>
+{% endblock %}

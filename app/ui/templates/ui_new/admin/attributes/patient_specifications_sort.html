@@ -1,0 +1,55 @@
+{% load crispy_forms_tags %}
+
+<form method="post" class="text-center" action="{% url 'admin_attributes_patientspec_add_remove' %}">
+    
+    {% csrf_token %}
+    <!-- Central Modal Small -->
+    <div class="modal fade" id="sort_patientspec" tabindex="-1" role="dialog" aria-labelledby="sort_patientspec_label" aria-hidden="true">
+
+        <!-- Change class .modal-sm to change the size of the modal -->
+        <div class="modal-dialog modal-lg" role="document">
+
+
+            <div class="modal-content">
+                <div class="modal-header text-left">
+                    <h4 class="modal-title w-100" id="sort_patientspec_label">Sort Patient Specification</h4>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <div class="d-flex align-items-center justify-content-center">
+
+                        <div class="text-left font-weight-bolder mb-4">
+                            <label for="id_name_project">Project*</label>
+                            <select name="id_name_project" id="id_name_project" class="form-control" required>
+                                <option value="" selected disabled>Please select a project</option>
+                                {% for project in projects %}
+                                    <option value="{{project.pk}}">{{project.name}}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+
+
+                        <div>
+                            <input type="hidden" name="access_type" value="sort">
+                            <input type="hidden" class="return_page" name="return_page" value="">
+                        </div>
+
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn custom-button-color2 btn-sm" data-dismiss="modal">Close</button>
+                        <button type="submit" class="btn custom-button-color1 btn-sm">Submit</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</form>
+<!-- Central Modal Small -->
+
+<script type="text/javascript">
+    $('#sort_patientspec').on('shown.bs.modal', function() {
+      $('#id_name_project').focus();
+    })
+</script>

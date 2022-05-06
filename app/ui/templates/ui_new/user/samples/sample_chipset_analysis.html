@@ -1,0 +1,137 @@
+<div class="container">
+    <h5 class="text-center p-2">
+        <!-- <button class="btn btn-block btn-lg custom-button-color1 font-weight-bold">Chipset Analysis</button> -->
+        <a href="{% url 'analysis_chipsets_add_remove' sample.pk %}" class="btn btn-block btn-lg custom-button-color1 font-weight-bold">Chipset Analysis</a>
+    </h5>
+    <hr>
+
+    <div class="container">
+        <div class="mb-3">
+            <div class="custom-control custom-switch mb-2 d-flex">
+                <a href="{% url 'analysis_chipsets_add_remove' sample.pk %}" class="btn-link text-primary"><i class="fas fa-plus fa-1x"></i> <strong><u>New Chipset Analysis</u></strong></a>
+                <div class="ml-auto">
+                    <input type="checkbox" class="custom-control-input custom-delete-switch" id="custom_chipsetanalysis_delete_switch">
+                    <label class="custom-control-label" for="custom_chipsetanalysis_delete_switch">Delete</label>
+                </div>
+            </div>
+        </div>
+        <div class="input-group mb-3">
+            <input type="text" id="custom_chipsetanalysis_search_input" class="form-control" placeholder="Search chipset, version or manufacturer" aria-label="Search chipset, version or manufacturer"
+        aria-describedby="custom_chipsetanalysis_reset_search_btn">
+            <div class="input-group-append">
+                <button class="btn btn-md custom-button-color2 m-0 px-3 py-2 z-depth-0" type="button" id="custom_chipsetanalysis_reset_search_btn">Reset</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="accordion p-4" id="chipset_analysis_accordion">
+        {% for chipsetanalysis in sample.chipsetanalysis_sample.all %}
+        <div class="row chipset-analysis-row" data-val="{{chipsetanalysis.chipsetspec}}">
+            <div class="col-10 p-2">
+                <h5 class="btn-link mb-3" data-toggle="collapse" data-target="#chipset_analysis_div_{{chipsetanalysis.pk}}" aria-expanded="true" aria-controls="chipset_analysis_div_{{chipsetanalysis.pk}}">
+                    {{chipsetanalysis.chipsetspec.get_name}}
+                  </h5>
+            </div>
+            <div class="col-1 d-flex p-2">
+                <a href="{% url 'analysis_chipsets_add_remove' sample.pk %}?chipsetspec={{chipsetanalysis.chipsetspec_id}}&edit=true&return=sample" class="btn-link mr-2"><i class="far fa-edit"></i></a>
+                <span class="custom-chipsetanalysis-li-span-link" data-pk="{{chipsetanalysis.pk}}"></span>
+            </div>
+        </div>
+        <div id="chipset_analysis_div_{{chipsetanalysis.pk}}" class="collapse p-2 chipset-analysis-collapse-div" data-parent="#chipset_analysis_accordion">
+            <table class="table table-sm table-bordered table-fixed">
+                <tbody>
+                    <tr>
+                        <th colspan="2">Name</th>
+                        <td colspan="2">{{chipsetanalysis.chipsetspec.name}}</td>
+                    </tr>
+                    <tr>
+                        <th>Manufacturer</th>
+                        <td>{{chipsetanalysis.chipsetspec.manufacturer}}</td>
+                        <th>Version</th>
+                        <td>{{chipsetanalysis.chipsetspec.version}}</td>
+                    </tr>
+                    <tr>
+                        <th>Genes</th>
+                        <td>{{chipsetanalysis.chipsetspec.genes.count}}</td>
+                        <th>Datapoints</th>
+                        <td>{{chipsetanalysis.chipsetspec.confdpts_chipsetspec.count}}</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+        {% empty %}
+            <div class="m-2 p-2">
+                No data available. <br>
+                <a href="{% url 'analysis_chipsets_add_remove' sample.pk %}">Add chipset analysis</a>
+            </div>
+        {% endfor %}
+    </div>
+
+</div>
+
+<form method="post" action="{% url 'analysis_chipsets_add_remove' sample.pk %}">
+    {% csrf_token %}
+    <input type="hidden" name="access_type" value="remove">
+    <input type="hidden" name="return_page" class="return_page" value="">
+    <input type="hidden" name="chipset_analysis_pks" id="chipset_analysis_pks" value=""/>
+    <button type="submit" id="custom_chipsetanalysis_delete_btn" style="display:none;" disabled></button>
+</form>
+
+<script type="text/javascript">
+$(document).ready(function(){
+
+    $(".return_page").val(window.location.pathname);
+
+    $("#custom_chipsetanalysis_reset_search_btn").on("click", function(){
+        $("#custom_chipsetanalysis_search_input").val('').trigger("input");
+    });
+
+    $("#custom_chipsetanalysis_search_input").on("input", function(){
+
+        let searchStringchipset = $(this).val();
+
+        if(searchStringchipset.length <= 0) {
+            $(".chipset-analysis-collapse-div").collapse('hide');
+            $("#chipset_analysis_accordion div.row.chipset-analysis-row").show("slow");
+            return;
+        }
+
+        $("#chipset_analysis_accordion div.row.chipset-analysis-row").each(function(i, val){
+            
+            $(".chipset-analysis-collapse-div").collapse('hide');
+
+            if(searchStringchipset.length > 0) {
+                let currentNamechipset = $(this).attr("data-val");
+                if(currentNamechipset.toUpperCase().indexOf(searchStringchipset.toUpperCase()) > -1) {
+                    $(this).show("slow");
+                } else {
+                    $(this).hide("slow");
+                }
+            }
+
+        });
+
+    });
+
+
+    $("#custom_chipsetanalysis_delete_switch").on("click", function(){
+        if($(this).prop("checked")) {
+            let htmlstr = '<i class="fas fa-times red-text custom-chipsetanalysis-delete-btn"></i>';
+            $(".custom-chipsetanalysis-li-span-link").append(htmlstr);
+            $(".custom-chipsetanalysis-delete-btn").on("click", function(){
+                $(".return_page").val(window.location.pathname);
+                $("#chipset_analysis_pks").val($(this).parent("span.custom-chipsetanalysis-li-span-link").attr("data-pk"));
+                console.log($("#chipset_analysis_pks").val())
+                $("#custom_chipsetanalysis_delete_btn").prop("disabled", false).click();
+            });
+        } else {
+            $(".custom-chipsetanalysis-delete-btn").remove();
+            $(".return_page").val("");
+            $("#chipset_analysis_pks").val("");
+        }
+
+    });
+
+
+});
+</script>

@@ -1,0 +1,29 @@
+Name	Type	Helptext	Options	ValidatorType	ValidatorValue	ErrorMessage
+Exon	integer	"If multiple exons, please create multiple gene entries for each exon."		MinValueValidator	1	Exon has to be positive.
+Manufacturer	varchar					
+Phenotype	select		"Amplification, Expression, Fusion, Mutation"			
+Assay	varchar	Specify the Technique being used.				
+Antibody	varchar					
+Kit	varchar					
+SOP-Version	varchar	SOP = Standard operation procedure				
+Panel_version	varchar					
+Panel_name	varchar					
+Change_DNA	varchar	"cValue, for example c.701G>T"				
+Change_Protein	varchar	"pValue, for example R72C"				
+Allelic_Fraction	numeric	"Document like, 33,24% -> 33,24"		"MinValueValidator, MaxValueValidator"	"0, 100"	Allelic Fraction has to be between 0 and 100. (for min and max Validator)
+Positive_Tumorcells	numeric	"Document like, 33,24% -> 33,25"		"MinValueValidator, MaxValueValidator"	"0, 100"	Positive tumorcells has to be between 0 and 100. (for min and max Validator)
+Polysome	numeric	"Document like, 33,24% -> 33,26"		"MinValueValidator, MaxValueValidator"	"0, 100"	Polysom has to be between 0 and 100. (for min and max Validator)
+Target	varchar					
+CEN_Signals	integer	Centromeric signals				
+Target_Signals	integer					
+IHC-Classification	select		"0, 1+, 2+, 3+"			
+ImmuneCells	numeric	"Document like, 33,24% -> 33,26"		"MinValueValidator, MaxValueValidator"	"0, 100"	Immune cells has to be between 0 and 100. (for min and max Validator)
+Coverage	numeric					
+Genome_build	varchar					
+Chromosome	varchar					
+Start_Position	varchar					
+Stop_Position	varchar					
+Ref_Allele	select		"A,T,G,C"			
+Alt_Allele	select		"A,T,G,C"			
+Reads_Ref_Allele	integer					
+Reads_Alt_Allele	integer					

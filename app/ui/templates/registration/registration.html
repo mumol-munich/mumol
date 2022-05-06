@@ -1,0 +1,45 @@
+{% extends "ui_new/base.html" %}
+{% load crispy_forms_tags %}
+
+{% block title %}
+Registration - {{title}}
+{% endblock %}
+
+{% block body %}
+
+{% include 'ui_new/messages.html' %}
+
+<div class="d-flex align-items-center justify-content-center">
+    <form method="post" class="text-center border border-light p-5" action="{% url 'registration' %}">
+    
+        {% csrf_token %}
+    
+        <p class="h4 m-2">Registration</p>
+        
+        <div class="text-left font-weight-bolder md-form">
+            {{form.username | as_crispy_field }}
+            {{form.email | as_crispy_field}}
+            <div class="form-row">
+                <div class="col">
+                    {{form.first_name | as_crispy_field}}
+                </div>
+                <div class="col">
+                    {{form.last_name | as_crispy_field}}
+                </div>
+            </div>
+            {{form.password1 | as_crispy_field}}
+            {{form.password2 | as_crispy_field}}
+        </div>
+    
+        <button class="btn custom-button-color1 my-4 btn-block" type="submit">Register</button>
+    
+        <p>Already a member?
+            <a href="{% url 'login' %}">Login</a>
+            </p>
+    
+    </form>
+</div>
+
+
+
+{% endblock %}

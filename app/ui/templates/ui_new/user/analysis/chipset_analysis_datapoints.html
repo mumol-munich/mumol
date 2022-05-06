@@ -1,0 +1,180 @@
+{% load crispy_forms_tags %}
+{% load filters %}
+
+{% include 'ui_new/user/analysis/chipset_analysis_batch_upload.html' %}
+
+<form method="post" action="#">
+    {% csrf_token %}
+
+
+    {% if confdpts %}
+    <span id="custom_add_dptsinput_span" class="d-flex flex-row flex-wrap"></span>
+
+    <div id="chipsetanalysis_table_div">
+
+        <!-- <table id="chipsetanalysis_table" class="table table-bordered table-sm"> -->
+        <table id="chipsetanalysis_table">
+            <thead>
+                <tr>
+                    <!-- <th class="cell cell-fixed">pk</th> -->
+                    <th class="cell cell-fixed">Gene</th>
+                    {% for confdpt in confdpts %}
+                        <th class="cell">{{confdpt.datapointtype__name}}{% if confdpt.mandatory %}<span class="red-text font-weight-bold">*</span>{% endif %}</th>
+                    {% endfor %}
+                </tr>
+            </thead>
+            <tbody>
+                {% for gene in chipsetspec.genes.all %}
+                    <tr>
+                        <!-- <td class="cell">{{gene.pk}}</td> -->
+                        <td class="cell">{{gene.name}}</td>
+                        {% for confdpt in confdpts %}
+                            <td class="cell">
+                                {% if confdpt.datapointtype__type in 'varchar,numeric,integer' %}
+                                    <input type="{%if confdpt.datapointtype__type in 'numeric,integer' %}number{% else %}text{% endif %}" class="form-control custom-dpts-value custom-dpts-input m-0 p-0" id="custom_{{gene.pk}}_{{confdpt.pk}}" name="custom_{{gene.pk}}_{{confdpt.pk}}" value="{{confdpt.default}}" {% if confdpt.mandatory %}required{% endif %} {% if confdpt.datapointtype__type == 'numeric' %}step="0.0001"{% endif %} {% if not request.GET.edit and currentdpts %}disabled{% endif %}>
+                                {% else %}
+                                    <select class="form-control custom-dpts-value custom-dpts-select m-0 p-0" id="custom_{{gene.pk}}_{{confdpt.pk}}" name="custom_{{gene.pk}}_{{confdpt.pk}}" {% if confdpt.datapointtype__type == 'multiple' %}multiple{% endif %} {% if confdpt.mandatory %}required{% endif %} {% if not request.GET.edit and currentdpts %}disabled{% endif %}>
+                                        {% if not confdpt.datapointtype__type == 'multiple' %}
+                                            <option value="" selected>Please select a value</option>
+                                        {% endif %}
+                                        {% for option in confdpt.datapointtype__options|string_to_list %}
+                                            <option value="{{option}}" {% if option in confdpt.default %}selected{% endif %}>{{option}}</option>
+                                        {% endfor %}
+                                    </select>
+                                {% endif %}
+                            </td>
+                        {% endfor %}
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    <div class="text-center mt-2">
+        <input type="hidden" name="custom_pks" id="custom_pks" value="{{confdpts|gene_confdpt_pks:chipsetspec.genes.all}}">
+        <input type="hidden" class="access_type" name="access_type" value="add">
+        <a href="{% if request.GET.return == 'sample' %}{% url 'sample_view_user' sample.pk %}{% elif request.GET.return == 'samples_overview' %}{% url 'samples_view_user' project_pk %}{% else %}{% url 'analysis_chipsets_add_remove' sample.pk %}{% endif %}" class="btn custom-button-color8">Back</a>
+        <button id="custom_dpts_reset_btn" type="button" class="btn custom-button-color2">Reset</button>
+        {% if currentdpts %}
+            <button id="custom_dpts_edit_btn" type="button" class="btn custom-button-color10">Edit</button>
+        {% endif %}
+        <button id="custom_dpts_upload_btn" type="button" class="btn custom-button-color2" data-toggle="modal" data-target="#upload_chipsetanalysis_batch">Upload</button>
+        <button id="custom_dpts_submit_btn" type="submit" class="btn custom-button-color4">Submit</button>
+    </div>
+
+    {% else %}
+    <div class="text-center mt-4">
+        <p>No datapoints available for this result</p>
+        <input type="hidden" class="access_type" name="access_type" value="add">
+        <a href="{% if request.GET.return == 'sample' %}{% url 'sample_view_user' sample.pk %}{% elif request.GET.return == 'samples_overview' %}{% url 'samples_view_user' project_pk %}{% else %}{% url 'analysis_chipsets_add_remove' sample.pk %}{% endif %}" class="btn custom-button-color8">Back</a>
+        <button id="custom_dpts_submit_btn" type="submit" class="btn custom-button-color4">Continue</button>
+    </div>
+    {% endif %}
+
+</form>
+
+<style>
+#chipsetanalysis_table_div {
+    overflow: auto;
+    flex-grow: 1;
+    width: 100%;
+    max-height: 50vh;
+}
+#chipsetanalysis_table {
+    table-layout: fixed;
+    border-collapse: collapse;
+    /* width: 100%; */
+}
+thead tr > th {
+  background:#ccc;
+  position: sticky;
+  padding:.5rem;
+  z-index:2;
+  top: 0;
+}
+thead tr > :first-child {
+  z-index:3;
+  left:0;
+  top:0;
+}
+td {
+  text-align:center;
+}
+tbody tr > :first-child {
+  background:#ccc;
+  position: sticky;
+  z-index:1;
+  left:0;
+}
+th, td {
+    min-width: 200px;
+}
+</style>
+
+{% verbatim %}
+<script id="add_dptsinput" type="text/x-handlebars-template">
+
+</script>
+{% endverbatim %}
+
+
+<script type="text/javascript">
+$(document).ready(function(){
+
+    let confdpts_val_def = {};
+
+    // table cell width
+
+    // edit button
+    $("#custom_dpts_edit_btn").on("click", function(){
+        let searchsubstr = window.location.search.substr(1);
+        if(searchsubstr !== "") {
+            window.location.href = window.location.pathname + "?" + searchsubstr + "&edit=true";
+        } else {
+            window.location.href = window.location.pathname
+        }
+    });
+
+    // access_type
+    if("{{request.GET.edit}}" == "true") {
+        $(".access_type").val('edit');
+        $("#custom_dpts_edit_btn").prop("disabled", true);
+    }
+
+    $(".custom-dpts-select[multiple]").select2({
+        width: "100%",
+    });
+
+    currentdpts = {{currentdpts|safe}};
+    $.each(currentdpts, function(i, val){
+        that = $("#custom_" + val.gene_id + "_" + val.confdpts_id);
+
+        if(that.is("select")) {
+            if(that.prop("multiple")) {
+                that.val(val.value.split(",")).trigger("change");
+            } else {
+                that.val(val.value).trigger("change");
+            }
+        } else {
+            that.val(val.value);
+        }
+
+        confdpts_val_def["custom_" + val.gene_id + "_" + val.confdpts_id] = $(that).val();
+    });
+
+    // reset btn
+    $("#custom_dpts_reset_btn").on("click", function(){
+
+        $.each(confdpts_val_def, function(i, val) {
+            if($("#" + i).hasClass("custom-dpts-select")) {
+                $("#" + i).val(val).trigger("change");
+            } else {
+                $("#" + i).val(val);
+            }
+        });
+
+    });
+
+    
+});
+</script>

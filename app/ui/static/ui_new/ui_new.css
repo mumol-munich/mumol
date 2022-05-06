@@ -1,0 +1,35 @@
+#custom_genespecs_treeview ul {
+    list-style-type: none;
+}
+#custom_chipsetpecs_treeview ul {
+    list-style-type: none;
+}
+
+ul.custom-treeview-outer-ul {
+    max-height: 55vh;
+    overflow-y: auto;
+}
+
+.custom-delete-switch:checked+.custom-control-label::before {
+    background-color: red;
+    border: red;
+}
+.custom-rcmd-switch:checked+.custom-control-label::before {
+    background-color: red;
+    border: red;
+}
+
+.custom-li-span-link:hover {
+    text-decoration: underline;
+}
+
+.footer_text_p {
+    font-size: 13px;
+}
+
+.navbar-brand {
+    position: absolute;
+    left: 50%;
+    text-align: center;
+    margin: auto;
+}

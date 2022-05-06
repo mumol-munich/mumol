@@ -1,0 +1,135 @@
+{% load filters %}
+<div class="container">
+    <h5 class="text-center p-2">
+        <!-- <button class="btn btn-block btn-lg custom-button-color1 font-weight-bold">Single-Gene Analysis</button> -->
+        <a href="{% url 'analysis_genes_add_remove' sample.pk %}" class="btn btn-block btn-lg custom-button-color1 font-weight-bold">Single-Gene Analysis</a>
+    </h5>
+    <hr>
+
+    <div class="container">
+        <div class="mb-3">
+            <div class="custom-control custom-switch mb-2 d-flex">
+                <a href="{% url 'analysis_genes_add_remove' sample.pk %}" class="btn-link text-primary"><i class="fas fa-plus fa-1x"></i> <strong><u>New Gene Analysis</u></strong></a>
+                <div class="ml-auto">
+                    <input type="checkbox" class="custom-control-input custom-delete-switch" id="custom_geneanalysis_delete_switch">
+                    <label class="custom-control-label" for="custom_geneanalysis_delete_switch">Delete</label>
+                </div>
+            </div>
+        </div>
+        <div class="input-group mb-3">
+            <input type="text" id="custom_geneanalysis_search_input" class="form-control" placeholder="Search method, gene or results" aria-label="Search method, gene or results"
+        aria-describedby="custom_geneanalysis_reset_search_btn">
+            <div class="input-group-append">
+                <button class="btn btn-md custom-button-color2 m-0 px-3 py-2 z-depth-0" type="button" id="custom_geneanalysis_reset_search_btn">Reset</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="accordion p-4" id="gene_analysis_accordion">
+        {% for geneanalysis in sample.geneanalysis_sample.all %}
+        <div class="row gene-analysis-row" data-val="{{geneanalysis.specification.get_name}}">
+            <div class="col-10 p-2">
+                <h5 class="btn-link mb-3" data-toggle="collapse" data-target="#gene_analysis_div_{{geneanalysis.pk}}" aria-expanded="true" aria-controls="gene_analysis_div_{{geneanalysis.pk}}">
+                    {{geneanalysis.specification.get_name}}
+                </h5>
+            </div>
+            <div class="col-1 d-flex p-2">
+                <a href="{% url 'analysis_genes_add_remove' sample.pk %}?genespec={{geneanalysis.specification_id}}&edit=true&return=sample" class="btn-link mr-2"><i class="far fa-edit"></i></a>
+                <span class="custom-geneanalysis-li-span-link" data-pk="{{geneanalysis.pk}}"></span>
+            </div>
+        </div>
+        <div id="gene_analysis_div_{{geneanalysis.pk}}" class="collapse p-2 gene-analysis-collpase-div" data-parent="#gene_analysis_accordion">
+            {% if geneanalysis.specification.specdpts_specification.count > 1 %}
+                <table class="table table-sm table-bordered">
+                    <tbody>
+                        {% for specdpts in geneanalysis.specification.specdpts_specification.all %}
+                                <tr>
+                                    <th>{{specdpts.datapointtype.name}}</th>
+                                    {% for datapointsrow in geneanalysis.datapointsrows.all %}
+                                        {% with datapoint=datapointsrow.datapoints.all|queryset_index_value:forloop.parentloop.counter0 %}
+                                            <td>{{datapoint.value}}</td>
+                                        {% endwith %}
+                                    {% endfor %}
+                                </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            {% endif %}
+        </div>
+        {% empty %}
+        <div class="m-2 p-2">
+            No data available. <br>
+            <a href="{% url 'analysis_genes_add_remove' sample.pk %}">Add gene analysis</a>
+        </div>
+        {% endfor %}
+    </div>
+
+</div>
+
+<form method="post" action="{% url 'analysis_genes_add_remove' sample.pk %}">
+    {% csrf_token %}
+    <input type="hidden" name="access_type" value="remove">
+    <input type="hidden" name="return_page" class="return_page" value="">
+    <input type="hidden" name="gene_analysis_pks" id="gene_analysis_pks" value=""/>
+    <button type="submit" id="custom_geneanalysis_delete_btn" style="display:none;" disabled></button>
+</form>
+
+<script type="text/javascript">
+
+$(document).ready(function(){
+    
+    $(".return_page").val(window.location.pathname);
+
+    $("#custom_geneanalysis_reset_search_btn").on("click", function(){
+        $("#custom_geneanalysis_search_input").val('').trigger("input");
+    });
+
+    $("#custom_geneanalysis_search_input").on("input", function(){
+
+        let searchString = $(this).val();
+
+        if(searchString.length <= 0) {
+            $(".gene-analysis-collpase-div").collapse('hide');
+            $("#gene_analysis_accordion div.row.gene-analysis-row").show("slow");
+            return;
+        }
+        
+        $("#gene_analysis_accordion div.row.gene-analysis-row").each(function(i, val){
+            
+            $(".gene-analysis-collpase-div").collapse('hide');
+
+            if(searchString.length > 0) {
+                let currentName = $(this).attr("data-val");
+                if(currentName.toUpperCase().indexOf(searchString.toUpperCase()) > -1) {
+                    $(this).show("slow");
+                } else {
+                    $(this).hide("slow");
+                }
+            }
+
+        });
+
+    });
+
+    $("#custom_geneanalysis_delete_switch").on("click", function(){
+        if($(this).prop("checked")) {
+            let htmlstr = '<i class="fas fa-times red-text custom-geneanalysis-delete-btn"></i>';
+            $(".custom-geneanalysis-li-span-link").append(htmlstr);
+            $(".custom-geneanalysis-delete-btn").on("click", function(){
+                $(".return_page").val(window.location.pathname);
+                $("#gene_analysis_pks").val($(this).parent("span.custom-geneanalysis-li-span-link").attr("data-pk"));
+                console.log($("#gene_analysis_pks").val())
+                $("#custom_geneanalysis_delete_btn").prop("disabled", false).click();
+            });
+        } else {
+            $(".custom-geneanalysis-delete-btn").remove();
+            $(".return_page").val("");
+            $("#gene_analysis_pks").val("");
+        }
+
+    });
+
+
+});
+
+</script>

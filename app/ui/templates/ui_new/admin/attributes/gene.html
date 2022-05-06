@@ -1,0 +1,195 @@
+{% extends "ui_new/base.html" %}
+{% load filters %}
+
+{% block title %}
+Gene - {{title}}
+{% endblock %}
+
+{% block body %}
+
+{% include 'ui_new/admin/projects/projects_link.html' %}
+{% include 'ui_new/admin/attributes/gene_specifications_add2.html' %}
+{% include 'ui_new/admin/attributes/gene_specifications_remove2.html' %}
+
+{% include 'ui_new/admin/attributes/chipset_specifications_add2.html' %}
+{% include 'ui_new/admin/attributes/chipset_specifications_remove2.html' %}
+
+{% include 'ui_new/user/breadcrumbs/breadcrumbs.html' %}
+
+{% include 'ui_new/messages.html' %}
+
+<div class="container">
+    <div class="p-3">
+        <h3>Gene Specifications</h3>
+        <table id="gene_table" class="table table-bordered" cellspacing="0" width="100%">
+            <thead>
+                <tr>
+                    <th class="th-sm"></th>
+                    <th class="th-sm">pk</th>
+                    <th class="th-sm">Gene Specifications</th>
+                    <th class="th-sm">Project</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for genespec in gene.specification_gene.all %}
+                <tr>
+                    <td></td>
+                    <td>{{genespec.pk}}</td>
+                    <td>{{genespec|gene_specification_link}}</td>
+                    <td>{{genespec.project}}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    <div class="p-3">
+        <h3>Chipset Specifications</h3>
+        <table id="chipset_table2" class="table table-bordered" cellspacing="0" width="100%">
+            <thead>
+                <tr>
+                    <th class="th-sm"></th>
+                    <th class="th-sm">pk</th>
+                    <th class="th-sm">Chipset Specifications</th>
+                    <th class="th-sm">Associated Genes</th>
+                    <th class="th-sm">Project</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for chipsetspec in gene.chipsetspec_genes.all %}
+                <tr>
+                    <td></td>
+                    <td>{{chipsetspec.pk}}</td>
+                    <td>{{chipsetspec.get_name}}</td>
+                    <td>{{chipsetspec.genes.count}}</td>
+                    <td>{{chipsetspec.project}}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+
+<script type="text/javascript">
+    $(document).ready(function(){
+    
+        $(".return_page").val(window.location.pathname);
+    
+        mytable = $("#gene_table").DataTable({
+            dom: "<'row'<'col-sm-12 col-md-5'B><'col-sm-12 col-md-2'l><'col-sm-12 col-md-5'f>>" + "<'row'<'col-sm-12'tr>>" + "<'row'<'col-sm-12 col-md-5'i><'col-sm-12 col-md-7'p>>",
+            buttons: [
+                { extend: 'selectNone', attr: { id: 'custom_selectnone_btn', class: 'btn btn-sm custom-button-color2' } },
+                { text: 'Add', attr: { id: 'custom_genespec_add_btn', 'data-toggle': 'modal', 'data-target': '#add_genespec', class: 'btn btn-sm custom-button-color2'}},
+                { text: 'Delete', attr: { id: 'custom_genespec_delete_btn', 'data-toggle': 'modal', 'data-target': '#remove_genespec', class: 'btn btn-sm custom-button-color3'}},
+            ],
+            pagingType: "full_numbers",
+            lengthMenu: [
+                [5, 10, 25, 50, -1],
+                [5, 10, 25, 50, "All"]
+            ],
+            columnDefs: [{
+                orderable: false,
+                className: 'select-checkbox select-checkbox-all',
+                targets: 0
+            },
+            {
+                targets: 1,
+                visible: false,
+            }],
+            select: {
+                style: 'multi',
+                selector: 'td:first-child'
+            },
+        });
+    
+        // delete button
+        mytable.button("#custom_genespec_delete_btn").enable(false);
+        mytable.on("select deselect", function(){
+            let selectedRows = mytable.rows({selected: true});
+            mytable.button("#custom_genespec_delete_btn").enable(selectedRows.count() > 0);
+            let pkval = [];
+            $.each(selectedRows.data(), function(i, val){
+                if(val[1] !== "") {
+                    pkval.push(val[1]) // pushing hidden pk value in column 2: index 1
+                }
+            });
+            if(pkval.length <= 0) {
+                pkval = "";
+            }
+            
+            $("#genespec_pks").val(pkval);
+        });
+    
+        $("#custom_genespec_delete_btn").on("click", function(){
+            let genespec_pks = $("#genespec_pks").val();
+            if (genespec_pks) {
+                genespec_pks = genespec_pks.split(',').length;
+            } else {
+                genespec_pks = genespec_pks.length;
+            }
+            $('#custom_selected_genespec_count_span').html(genespec_pks);
+        });
+    
+
+
+
+        mytable2 = $("#chipset_table2").DataTable({
+            dom: "<'row'<'col-sm-12 col-md-5'B><'col-sm-12 col-md-2'l><'col-sm-12 col-md-5'f>>" + "<'row'<'col-sm-12'tr>>" + "<'row'<'col-sm-12 col-md-5'i><'col-sm-12 col-md-7'p>>",
+            buttons: [
+                { extend: 'selectNone', attr: { id: 'custom_selectnone_btn2', class: 'btn btn-sm custom-button-color2' } },
+                { text: 'Add', attr: { id: 'custom_chipsetspec_add_btn2', 'data-toggle': 'modal', 'data-target': '#add_chipsetspec', class: 'btn btn-sm custom-button-color2'}},
+                { text: 'Delete', attr: { id: 'custom_chipsetspec_delete_btn2', 'data-toggle': 'modal', 'data-target': '#remove_chipsetspec', class: 'btn btn-sm custom-button-color3'}},
+            ],
+            pagingType: "full_numbers",
+            lengthMenu: [
+                [5, 10, 25, 50, -1],
+                [5, 10, 25, 50, "All"]
+            ],
+            columnDefs: [{
+                orderable: false,
+                className: 'select-checkbox select-checkbox-all',
+                targets: 0
+            },
+            {
+                targets: 1,
+                visible: false,
+            }],
+            select: {
+                style: 'multi',
+                selector: 'td:first-child'
+            },
+        });
+    
+        // delete button
+        mytable2.button("#custom_chipsetspec_delete_btn2").enable(false);
+        mytable2.on("select deselect", function(){
+            let selectedRows = mytable2.rows({selected: true});
+            mytable2.button("#custom_chipsetspec_delete_btn2").enable(selectedRows.count() > 0);
+            let pkval = [];
+            $.each(selectedRows.data(), function(i, val){
+                if(val[1] !== "") {
+                    pkval.push(val[1]) // pushing hidden pk value in column 2: index 1
+                }
+            });
+            if(pkval.length <= 0) {
+                pkval = "";
+            }
+            
+            $("#chipsetspec_pks").val(pkval);
+        });
+    
+        $("#custom_chipsetspec_delete_btn2").on("click", function(){
+            let chipsetspec_pks = $("#chipsetspec_pks").val();
+            if (chipsetspec_pks) {
+                chipsetspec_pks = chipsetspec_pks.split(',').length;
+            } else {
+                chipsetspec_pks = chipsetspec_pks.length;
+            }
+            $('#custom_selected_chipsetspec_count_span').html(chipsetspec_pks);
+        });
+    
+    });
+</script>
+    
+
+{% endblock %}

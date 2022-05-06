@@ -1,0 +1,21 @@
+{% extends "ui_new/base.html" %}
+
+
+{% block title %}
+Projects - {{title}}
+{% endblock %}
+
+{% block body %}
+
+{% include 'ui_new/admin/projects/projects_link.html' %}
+
+{% include 'ui_new/messages.html' %}
+
+
+
+<div class="d-flex justify-content-center mt-5 pt-5">
+    <button type="button" class="btn custom-button-color1" data-toggle="modal" data-target="#add_project">Add Project</button>
+</div>
+
+
+{% endblock %}

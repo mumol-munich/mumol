@@ -1,0 +1,110 @@
+{% extends "ui_new/base.html" %}
+{% load filters %}
+
+{% block title %}
+Methods - {{title}}
+{% endblock %}
+
+{% block body %}
+
+{% include 'ui_new/admin/projects/projects_link.html' %}
+{% include 'ui_new/admin/attributes/methods_remove.html' %}
+{% include 'ui_new/admin/attributes/method_add.html' %}
+
+{% include 'ui_new/user/breadcrumbs/breadcrumbs.html' %}
+
+{% include 'ui_new/messages.html' %}
+
+<div class="container">
+    <div class="p-3">
+        <table id="methods_table" class="table table-bordered" cellspacing="0" width="100%">
+            <thead>
+                <tr>
+                    <th class="th-sm"></th>
+                    <th class="th-sm">pk</th>
+                    <th class="th-sm">Name</th>
+                    <th class="th-sm">Associated Specifications</th>
+                    <th class="th-sm">Associated Genes</th>
+                    <th class="th-sm">Associated Projects</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for method in methods %}
+                <tr>
+                    <td></td>
+                    <td>{{method.pk}}</td>
+                    <td><a class="btn-link" href="{% url 'admin_attributes_method' method.pk %}">{{'method'|set_icons }}{{method.name}}</a></td>
+                    <td>{{method.specification_method.count}}</td>
+                    <td>{{method|method_info:'genes'}}</td>
+                    <td>{{method|method_info:'projects'}}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<script type="text/javascript">
+$(document).ready(function(){
+
+    $(".return_page").val(window.location.pathname);
+
+    mytable = $("#methods_table").DataTable({
+        dom: "<'row'<'col-sm-12 col-md-5'B><'col-sm-12 col-md-2'l><'col-sm-12 col-md-5'f>>" + "<'row'<'col-sm-12'tr>>" + "<'row'<'col-sm-12 col-md-5'i><'col-sm-12 col-md-7'p>>",
+        buttons: [
+            { extend: 'selectNone', attr: { id: 'custom_selectnone_btn', class: 'btn btn-sm custom-button-color2' } },
+            { text: 'Add', attr: { id: 'custom_method_add_btn', 'data-toggle': 'modal', 'data-target': '#add_method', class: 'btn btn-sm custom-button-color2'}},
+            { text: 'Delete', attr: { id: 'custom_method_delete_btn', 'data-toggle': 'modal', 'data-target': '#remove_methods', class: 'btn btn-sm custom-button-color3'}},
+        ],
+        pagingType: "full_numbers",
+        lengthMenu: [
+            [10, 25, 50, -1],
+            [10, 25, 50, "All"]
+        ],
+        columnDefs: [{
+            orderable: false,
+            className: 'select-checkbox select-checkbox-all',
+            targets: 0
+        },
+        {
+            targets: 1,
+            visible: false,
+        }],
+        select: {
+            style: 'multi',
+            selector: 'td:first-child'
+        },
+    });
+
+    // delete button
+    mytable.button("#custom_method_delete_btn").enable(false);
+    mytable.on("select deselect", function(){
+        let selectedRows = mytable.rows({selected: true});
+        mytable.button("#custom_method_delete_btn").enable(selectedRows.count() > 0);
+        let pkval = [];
+        $.each(selectedRows.data(), function(i, val){
+            if(val[1] !== "") {
+                pkval.push(val[1]) // pushing hidden pk value in column 2: index 1
+            }
+        });
+        if(pkval.length <= 0) {
+            pkval = "";
+        }
+        
+        $("#method_pks").val(pkval);
+    });
+
+    $("#custom_method_delete_btn").on("click", function(){
+        let method_pks = $("#method_pks").val();
+        if (method_pks) {
+            method_pks = method_pks.split(',').length;
+        } else {
+            method_pks = method_pks.length;
+        }
+        $('#custom_selected_methods_count_span').html(method_pks);
+    });
+
+});
+</script>
+
+{% endblock %}

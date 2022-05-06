@@ -1,0 +1,70 @@
+{% extends "ui_new/base.html" %}
+{% load crispy_forms_tags %}
+
+{% block title %}
+AddChipsetSpecifications - {{title}}
+{% endblock %}
+
+
+{% block body %}
+
+{% include 'ui_new/admin/projects/projects_link.html' %}
+{% include 'ui_new/admin/attributes/gene_add.html' %}
+{% include 'ui_new/admin/attributes/datapointtype_add.html' %}
+
+{% include 'ui_new/messages.html' %}
+
+<div class="container-fluid">
+    <div class="row">
+        <div class="col">
+            <!-- stepper -->
+            {% include 'ui_new/admin/chipset_specifications/chipset_specifications_stepper.html' %}
+            <!-- stepper -->
+        </div>
+    </div>
+    <div class="row mt-1 mb-4 pb-4">
+        <div class="col-md-12 text-center">
+            <!-- <button class="btn custom-outline-color1-btn btn-sm" id="custom_previous_btn">Previous</button> -->
+            <button type="button" class="btn custom-button-color2" id="custom_cancel_btn"
+                onClick="localStorage.removeItem('chipset_specs');location.reload();">Clear</button>
+            <button type="button" class="btn custom-button-color1" id="custom_next_btn"
+                onClick="ChipsetSpecificationSetStorage('{{project_pk}}');">Next</button>
+            <button type="button" class="btn custom-button-color4" id="custom_submit_btn" data-checkvar="false" disabled>Submit</button>
+        </div>
+    </div>
+</div>
+
+<form method="post" action="{% url 'chipset_specifications_add' project_pk %}">
+    {% csrf_token %}
+    <input type="hidden" id="chipset_specs" name="chipset_specs" value="">
+    <button id="custom_submit_btn2" type="submit" style="display:none;" disabled></button>
+</form>
+
+
+<script type="text/javascript">
+$(document).ready(function(){
+
+    HighlightProjectActive("{{project_pk}}");
+    
+    $(".return_page").val(window.location.pathname);
+    
+    // PreventEnterKeyFn();
+    ChipsetSpecificationGetStorage("{{project_pk}}");
+    
+    
+    $("#custom_submit_btn").on("click", function () {
+        $("#custom_next_btn").click();
+        $("#chipset_specs").val(localStorage.getItem("chipset_specs"));
+        $("#custom_submit_btn2").prop("disabled", false).click();
+    });
+
+    
+    CustomChipsetDptsAddBtn();
+
+    
+    
+});
+    
+</script>
+
+{% endblock %}

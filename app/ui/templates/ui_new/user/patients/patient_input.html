@@ -1,0 +1,69 @@
+{% load filters %}
+<div class="container-fluid">
+    <form method="post" action="{% url 'patients_add_remove' project_pk %}">
+        {% csrf_token %}
+        <div class="form-row">
+            <div class="col-2 md-form">
+                <input type="text" id="id_firstname" name="id_firstname" class="form-control custom-patient-edit-form-input" value="{{projectid.patient.firstname}}" disabled required>
+                <label for="id_firstname">First Name*</label>
+            </div>
+            <div class="col-2 md-form">
+                <input type="text" id="id_lastname" name="id_lastname" class="form-control custom-patient-edit-form-input" value="{{projectid.patient.lastname}}" disabled required>
+                <label for="id_lastname">Last Name*</label>
+            </div>
+            <div class="col-2 md-form">
+                <input type="text" id="id_dateofbirth" name="id_dateofbirth" class="form-control custom-patient-edit-form-input" value="{{projectid.patient.get_dateofbirth}}" disabled required>
+                <label for="id_dateofbirth">Date of Birth*</label>
+            </div>
+            <div class="col-3 md-form">
+                <input type="text" id="id_projectid" name="id_projectid" class="form-control custom-patient-edit-form-input" value='{{projectid.projectid }}' disabled required>
+                <label for="id_projectid">Project Specific Patient ID*</label>
+            </div>
+            
+            {% if not patient_edit_deny %}
+            <div class="col-2" style="display:inline-block">
+                <button type="button" class="btn btn-sm btn-outline-red" id="custom_patient_edit_btn">Edit</button>
+                <button type="submit" class="btn btn-sm btn-outline-red disabled" id="custom_patient_submit_btn">Submit</button>
+            </div>
+            <input type="hidden" name="projectid_pk" value='{{projectid.pk }}'>
+            <input type="hidden" name="return_page" class="return_page" value="">
+            <input type="hidden" name="access_type" value="edit">
+            {% endif %}
+            
+        </div>
+    </form>
+</div>
+
+
+
+<script type="text/javascript">
+$(document).ready(function(){
+
+const patient_array = ["id_firstname", "id_lastname", "id_dateofbirth", "id_projectid"];
+const patient_dict = {}
+$.each(patient_array, function(i, val){
+    patient_dict[val] = $("#" + val).val();
+});
+
+$("#custom_patient_edit_btn").on("click", function(){
+    $(this).toggleClass("active");
+    // .toggleClass("btn-red")
+    // .toggleClass("btn-outline-red")
+    $("#custom_patient_submit_btn")
+    .toggleClass("btn-red")
+    .toggleClass("btn-outline-red")
+    .toggleClass("disabled");
+
+    if($(this).hasClass("active")) {
+        $(".custom-patient-edit-form-input").prop("disabled", false);
+    } else {
+        // reset values
+        $.each(patient_dict, function(i, val) {
+            $("#" + i).val(val);
+        });
+        $(".custom-patient-edit-form-input").prop("disabled", true);
+    }
+});
+
+});
+</script>

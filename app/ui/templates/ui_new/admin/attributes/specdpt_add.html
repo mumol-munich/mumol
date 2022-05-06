@@ -1,0 +1,97 @@
+{% load crispy_forms_tags %}
+
+<form method="post" class="text-center" action="{% url 'admin_attributes_specdpt_add_remove' genespec.pk %}">
+    
+    {% csrf_token %}
+    <!-- Central Modal Small -->
+    <div class="modal fade" id="add_specdpt" tabindex="-1" role="dialog" aria-labelledby="add_specdpt_label" aria-hidden="true">
+
+        <!-- Change class .modal-sm to change the size of the modal -->
+        <div class="modal-dialog" role="document">
+
+
+            <div class="modal-content">
+                <div class="modal-header text-left">
+                    <h4 class="modal-title w-100" id="add_specdpt_label">Add Specification Datapoint</h4>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <div class="d-flex align-items-center justify-content-center mb-4">
+
+                        <div class="text-left font-weight-bolder">
+                            <div class="form-group">
+                                <label for="id_datapointtype">Datapoint Type*</label>
+                                <select name="id_datapointtype" id="id_datapointtype" class="form-control" required>
+                                    <option value="" selected disabled>Please select a datapoint type</option>
+                                    {% for dpt in datapointtypes %}
+                                        <option value="{{dpt.pk}}" data-options="{{dpt.options}}" data-helptext="{{dpt.helptext}}">{{dpt}}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" value="True" id="id_mandatory" name="id_mandatory">
+                                    <label class="form-check-label" for="id_mandatory">
+                                      Mandatory
+                                    </label>
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <label for="id_default">Default</label>
+                                <input type="text" class="form-control" id="id_default" name="id_default" value="">
+                                <span id="id_default_text"></span>
+                            </div>
+
+                            <p class="text-danger">The default value will be added to all of the previously created datapoints as well</p>
+                        </div>
+
+                        
+
+                        <div>
+                            <input type="hidden" name="access_type" value="add">
+                            <input type="hidden" class="return_page" name="return_page" value="">
+                        </div>
+
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn custom-button-color2 btn-sm" data-dismiss="modal">Close</button>
+                        <button type="button" id="specdpt_custom_submit_btn1" class="btn custom-button-color1 btn-sm">Submit</button>
+                        <button type="submit" id="specdpt_custom_submit_btn2" style="display:none;" disabled></button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</form>
+<!-- Central Modal Small -->
+
+<script type="text/javascript">
+    $('#add_specdpt').on('shown.bs.modal', function() {
+      $('#id_datapointtype').focus();
+    })
+
+    $("#id_datapointtype").on("change", function(){
+        var htmlstr = "";
+        var optiontext = $(this).find("option:selected").attr("data-options");
+        var helptext = $(this).find("option:selected").attr("data-helptext");
+        if(optiontext) {
+            htmlstr += '<small>options: ' + optiontext + '</small><br>';
+        }
+        if(helptext) {
+            htmlstr += '<small>helptext: ' + helptext + '</small>';
+        }
+        $("#id_default_text").html(htmlstr);
+    });
+
+    $("#specdpt_custom_submit_btn1").on("click", function(){
+        if($("#id_mandatory").prop("checked")) {
+            if($("#id_default").val() == "") {
+                alert("Default value should be provided if mandatory is checked");
+                return
+            }
+        }
+        $("#specdpt_custom_submit_btn2").attr("disabled", false).click();
+    });
+</script>

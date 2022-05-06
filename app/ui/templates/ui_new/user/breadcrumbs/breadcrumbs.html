@@ -1,0 +1,44 @@
+{% load filters %}
+
+<div class="mt-4">
+    <nav aria-label="breadcrumb">
+        <ol class="breadcrumb white">
+            {% if current_page == 'project' %}
+                <!-- <li class="breadcrumb-item"><strong>Project</strong></li> -->
+                <li class="breadcrumb-item"><strong>{{'project'|set_icons}}{{projects |get_project_name:project_pk }}</strong></li>
+            {% elif current_page == 'methods' %}
+                <li class="breadcrumb-item"><strong>{{'method'|set_icons}}Methods</strong></li>
+            {% elif current_page == 'method' %}
+                <li class="breadcrumb-item"><a href="{% url 'admin_attributes_methods' %}"><strong>{{'method'|set_icons}}Methods</strong></a></li>
+                <li class="breadcrumb-item"><strong>{{method.name}}</strong></li>
+            {% elif current_page == 'genes' %}
+                <li class="breadcrumb-item"><strong>{{'gene'|set_icons}}Genes</strong></li>
+            {% elif current_page == 'gene' %}
+                <li class="breadcrumb-item"><a href="{% url 'admin_attributes_genes' %}"><strong>{{'gene'|set_icons}}Genes</strong></a></li>
+                <li class="breadcrumb-item"><strong>{{gene.name}}</strong></li>
+            {% elif current_page == 'specifications' %}
+                <li class="breadcrumb-item"><strong>{{'specification'|set_icons}}Specifications</strong></li>
+                {% elif current_page == 'gene_specification' %}
+                <li class="breadcrumb-item"><a href="{% url 'admin_attributes_specifications' %}"><strong>{{'specification'|set_icons}}Specifications</strong></a></li>
+                <li class="breadcrumb-item"><strong>Genes: {{genespec.get_name}}</strong></li>
+            {% elif current_page == 'chipset_specification' %}
+                <li class="breadcrumb-item"><a href="{% url 'admin_attributes_specifications' %}"><strong>{{'specification'|set_icons}}Specifications</strong></a></li>
+                <li class="breadcrumb-item"><strong>Chipsets: {{chipsetspec.get_name}}</strong></li>
+            {% elif current_page == 'datapointtypes' %}
+                <li class="breadcrumb-item"><strong>{{'datapoint'|set_icons}}Datapoint Types</strong></li>
+            {% else %}
+                <!-- <li class="breadcrumb-item"><a href="{% url 'project_view_user' project_pk %}"><strong>Project</strong></a></li> -->
+                <li class="breadcrumb-item"><a href="{% url 'project_view_user' project_pk %}"><strong>{{'project'|set_icons}}{{projects |get_project_name:project_pk }}</strong></a></li>
+                {% if current_line == 'patients' %}
+                    {% include 'ui_new/user/breadcrumbs/breadcrumbs_patients.html' %}
+                {% elif current_line == 'samples' %}
+                    {% include 'ui_new/user/breadcrumbs/breadcrumbs_samples.html' %}
+                {% elif current_line == 'geneanalyses' %}
+                    {% include 'ui_new/user/breadcrumbs/breadcrumbs_geneanalyses.html' %}
+                {% elif current_line == 'chipsetanalyses' %}
+                    {% include 'ui_new/user/breadcrumbs/breadcrumbs_chipsetanalyses.html' %}
+                {% endif %}
+            {% endif %}
+        </ol>
+    </nav>
+</div>

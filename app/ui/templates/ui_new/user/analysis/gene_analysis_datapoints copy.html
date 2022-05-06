@@ -1,0 +1,205 @@
+{% load crispy_forms_tags %}
+{% load filters %}
+
+<form method="post" action="#">
+    {% csrf_token %}
+
+    {% if specdpts|arraycount %}
+    <span id="custom_add_dptsinput_span" class="d-flex flex-row flex-wrap"></span>
+    
+    <div class="text-center mt-2">
+        <input type="hidden" name="custom_pks" id="custom_pks" value="">
+        <input type="hidden" class="access_type" name="access_type" value="add">
+        <a href="{% if request.GET.return == 'sample' %}{% url 'sample_view_user' sample.pk %}{% elif request.GET.return == 'samples_overview' %}{% url 'samples_view_user' project_pk %}{% else %}{% url 'analysis_genes_add_remove' sample.pk %}{% endif %}" class="btn custom-button-color8">Back</a>
+        <button id="custom_dpts_reset_btn" type="button" class="btn custom-button-color2">Reset</button>
+        {% if currentdpts %}
+            <button id="custom_dpts_edit_btn" type="button" class="btn custom-button-color10">Edit</button>
+        {% endif %}
+        <button id="custom_dpts_submit_btn" type="submit" class="btn custom-button-color4">Submit</button>
+    </div>
+    
+    {% else %}
+    <div class="text-center mt-4">
+        <input type="hidden" class="access_type" name="access_type" value="add">
+        <p>No datapoints available for this result</p>
+        <a href="{% if request.GET.return == 'sample' %}{% url 'sample_view_user' sample.pk %}{% elif request.GET.return == 'samples_overview' %}{% url 'samples_view_user' project_pk %}{% else %}{% url 'analysis_genes_add_remove' sample.pk %}{% endif %}" class="btn custom-button-color8">Back</a>
+        <button id="custom_dpts_submit_btn" type="submit" class="btn custom-button-color4">Continue</button>
+    </div>
+    {% endif %}
+
+
+</form>
+
+
+{% verbatim %}
+<script id="add_dptsinput" type="text/x-handlebars-template">
+
+    
+<!-- varchar -->
+{{#ifEquals dpttype "input"}}
+<div class="form-group col-3 p-4 rounded border border-white grey lighten-3">
+    <label for="custom_{{pk}}">{{name}}</label>
+    <input type="text" class="form-control custom-dpts-value custom-dpts-input" id="custom_{{pk}}" name="custom_{{pk}}" {{edit_disabled}}>
+    <small>{{helptext}}</small>
+</div>
+{{/ifEquals}}
+
+<!-- integer -->
+{{#ifEquals dpttype "select"}}
+<div class="form-group col-3 p-4 rounded border border-white grey lighten-3">
+    <label for="custom_{{pk}}">{{name}}</label>
+    <select class="form-control custom-dpts-value custom-dpts-select" id="custom_{{pk}}" name="custom_{{pk}}" {{edit_disabled}}>
+        <option value="" selected>Please select a value</option>
+        {{#each options}}
+            <option value="{{this}}">{{this}}</option>
+        {{/each}}
+    </select>
+    <small>{{helptext}}</small>
+</div>
+{{/ifEquals}}
+    
+    
+</script>
+{% endverbatim %}
+
+<script type="text/javascript">
+$(document).ready(function(){
+
+    let specdpts = {{specdpts|safe}};
+    let currentdpts = {{currentdpts|safe}};
+    let specdpts_val_def = {};
+    let custom_pks = [];
+
+    // edit button
+    $("#custom_dpts_edit_btn").on("click", function(){
+        let searchsubstr = window.location.search.substr(1);
+        if(searchsubstr !== "") {
+            window.location.href = window.location.pathname + "?" + searchsubstr + "&edit=true";
+        } else {
+            window.location.href = window.location.pathname
+        }
+    });
+
+    // access_type
+    if("{{request.GET.edit}}" == "true") {
+        $(".access_type").val('edit');
+        $("#custom_dpts_edit_btn").prop("disabled", true);
+    }
+
+    // handlebars
+    let add_dptsinput = Handlebars.compile($("#add_dptsinput").html());
+    
+    Handlebars.registerHelper('ifEquals', function(arg1, arg2, options) {
+        return (arg1 == arg2) ? options.fn(this) : options.inverse(this);
+    });
+
+    let edit_disabled = "disabled";
+    if(("{{request.GET.edit}}" == "true" && {{currentdpts|safe}}.length > 0) || ({{currentdpts|safe}}.length <= 0)) {
+        edit_disabled = "";
+    }
+
+    $.each(specdpts, function(i, val){
+
+        custom_pks.push(val.pk);
+
+        let selectoptions, dpttype;
+        if (val.datapointtype__options.length > 0) {
+            selectoptions = val.datapointtype__options.split(',');
+        }  else {
+            selectoptions = [];
+        }
+
+        if(val.datapointtype__type == "boolean" || val.datapointtype__type == "select" || val.datapointtype__type == "multiple") {
+            dpttype = "select";
+        } else {
+            dpttype = "input";
+        }
+
+        $("#custom_add_dptsinput_span").append(
+            add_dptsinput({
+                'pk': val.pk, // datapointtype pk
+                'default': val.default,
+                'dpttype': dpttype,
+                'name': val.datapointtype__name,
+                'helptext': val.datapointtype__helptext,
+                'options': selectoptions,
+                'edit_disabled': edit_disabled
+            }
+        ));
+
+        let that = $("#custom_" + val.pk);
+
+        // add mandatory info
+        if (val.mandatory) {
+            that.prop("required", true);
+            // add star
+            that.siblings("label").append(' <span class="red-text font-weight-bold">*</span>');
+        }
+
+        // select input
+        if(dpttype == "select") {
+            // default
+            if(val.default) {
+                that.val(val.default).trigger("change");
+            }
+            // multiple
+            if(val.datapointtype__type == "multiple") {
+                that.prop("multiple", true);
+                that.val(val.default.split(',')).trigger("change");
+            }
+        } else {
+            // default
+            if(val.default) {
+                that.val(val.default);
+            }
+        }
+        
+        // add numeric input
+        if (val.datapointtype__type == "integer" || val.datapointtype__type == "numeric") {
+            
+            that.prop("type", "number");
+
+            if(val.datapointtype__type == "integer") {
+                that.prop("step", "1");
+            } else {
+                that.prop("step", "0.0001") // just arbitrary
+            }
+        }
+
+        // add currentdpts to html
+        $.each(currentdpts, function(i2, val2) {
+            if(val2.specdpts_id == val.pk) {
+                if(dpttype == "select") {
+                    that.val(val2.value).trigger("change");
+                } else {
+                    that.val(val2.value);
+                }
+            }
+        })
+
+        // add values to dict
+        specdpts_val_def["custom_" + val.pk] = $(that).val();
+
+    });
+
+    // push custom_pks
+    $("#custom_pks").val(String(custom_pks));
+
+    // $(".custom-dpts-value").on("input", function(){
+    //     specdpts_val[$(this).attr("id")] = $(this).val();
+    // });
+
+    $("#custom_dpts_reset_btn").on("click", function(){
+
+        $.each(specdpts_val_def, function(i, val) {
+            if($("#" + i).hasClass("custom-dpts-select")) {
+                $("#" + i).val(val).trigger("change");
+            } else {
+                $("#" + i).val(val);
+            }
+        });
+
+    });
+
+});
+</script>

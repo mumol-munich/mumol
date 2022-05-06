@@ -1,0 +1,23 @@
+{% load crispy_forms_tags %}
+
+<h4 class='mb-3'>Register Patient</h4>
+<form method="post" action="{% url 'patients_add_remove' project_pk %}">
+    {% csrf_token %}
+    {{formpatient | crispy}}
+    <div class="form-group">
+        {{formprojectid.projectid | as_crispy_field}}
+        <small class="red-text">If project id is not specified, an unique id is assigned automatically</small>
+    </div>
+
+    <div class="form-group">
+        {% include 'ui_new/user/patients/patientspec_form.html' %}
+        <input type="hidden" id="custompat_pks" name="custompat_pks" value="[]">
+    </div>
+
+
+
+    <input type="hidden" name="return_page" class="return_page" value="">
+    <input type="hidden" name="access_type" value="add">
+    <button type="button" class="btn btn-sm custom-button-color1" id="custompat_add_patient_btn">Submit</button>
+    <button id="custompat_add_patient_btn2" type="submit" style="display:none;" disabled></button>
+</form>

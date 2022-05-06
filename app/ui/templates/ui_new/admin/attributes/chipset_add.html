@@ -1,0 +1,66 @@
+{% load crispy_forms_tags %}
+
+<form method="post" class="text-center" action="{% url 'admin_attributes_chipset_add_remove' %}">
+    
+    {% csrf_token %}
+    <!-- Central Modal Small -->
+    <div class="modal fade" id="add_chipset" tabindex="-1" role="dialog" aria-labelledby="add_chipset_label" aria-hidden="true">
+
+        <!-- Change class .modal-sm to change the size of the modal -->
+        <div class="modal-dialog modal-sm" role="document">
+
+
+            <div class="modal-content">
+                <div class="modal-header text-left">
+                    <h4 class="modal-title w-100" id="add_chipset_label">Add Chipset</h4>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <div class="d-flex align-items-center justify-content-center">
+
+                        <div class="text-left font-weight-bolder">
+                            {{formchip.name | as_crispy_field}}
+                            <div class="form-row">
+                                <div class="col">
+                                    {{formchip.manufacturer | as_crispy_field}}
+                                </div>
+                                <div class="col">
+                                    {{formchip.version | as_crispy_field}}
+                                </div>
+                            </div>
+                            {{formchip.genes | as_crispy_field}}
+                        </div>
+
+                        <div>
+                            <input type="hidden" name="access_type" value="add">
+                            <input type="hidden" class="return_page" name="return_page" value="">
+                        </div>
+
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn custom-button-color2 btn-sm" data-dismiss="modal">Close</button>
+                        <button type="submit" class="btn custom-button-color1 btn-sm">Submit</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</form>
+<!-- Central Modal Small -->
+
+<script type="text/javascript">
+    $('#add_chipset').on('shown.bs.modal', function() {
+      $('#id_name_chipset').focus();
+    })
+
+    // Select2Module("#id_genes", "75%", "Select Genes", false, "#add_chipset");
+    $("#id_genes option[value='']").remove();
+    $("#id_genes").select2({
+        width: "75%",
+        placeholder: "Select Genes",
+        allowClear: true,
+        closeOnSelect: false
+    });
+</script>

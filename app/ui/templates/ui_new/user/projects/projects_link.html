@@ -1,0 +1,37 @@
+{% load filters %}
+
+<ul class="nav nav-tabs" id="project_link" role="navigation">
+
+    {% if not project_link_deny %}
+    <li class="nav-item">
+        <a class="nav-link btn-light font-weight-bold mr-1" href="{% url 'patients_view_user' project_pk %}" data-type="/patients" style="display:inline-block;">{{'patients'|set_icons}}Patients</a>
+        <a class="nav-link btn-light font-weight-bold mr-1" href="{% url 'samples_view_user' project_pk %}" data-type="/samples" style="display:inline-block;">{{'samples'|set_icons}}Samples</a>
+        <a class="nav-link btn-light font-weight-bold mr-1" href="{% url 'analysis_genes_view' project_pk %}" data-type="/analysis/genes" style="display:inline-block;">{{'geneanalyses'|set_icons}}Gene Analysis</a>
+        <a class="nav-link btn-light font-weight-bold mr-1" href="{% url 'analysis_chipsets_view' project_pk %}" data-type="/analysis/chipsets" style="display:inline-block;">{{'chipsetanalyses'|set_icons}}Chipset Analysis</a>
+    </li>
+    {% endif %}
+
+    <li class="nav-item ml-auto">
+    {% for project in projects %}
+        <!-- <a class="nav-link btn-light ml-1" href="{% url 'project_view_user' project.pk %}" role="tab" data-project_pk="{{project.pk}}" style="display:inline-block">{{ 'project'|set_icons }}{{project.name}}</a> -->
+        <a class="nav-link btn-light ml-1" href="{% url 'project_view_user' project.pk %}/patients" role="tab" data-project_pk="{{project.pk}}" style="display:inline-block">{{ 'project'|set_icons }}{{project.name}}</a>
+    {% endfor %}
+    </li>
+
+</ul>
+
+<script type="text/javascript">
+
+    let reqtypes = ["/analysis/chipsets", "/analysis/genes", "/samples", "/patients"];
+    for(i = 0; i < reqtypes.length; i++) {
+        if(reqtypes[i] == "/patients" && window.location.href.indexOf('/projectids/') > -1) {
+            $("#project_link").find("[data-type='" + reqtypes[i] + "']").addClass("active").removeClass("btn-light");
+            break;
+        }
+        if(window.location.href.indexOf(reqtypes[i]) > -1) {
+            $("#project_link").find("[data-type='" + reqtypes[i] + "']").addClass("active").removeClass("btn-light");
+            break;
+        }
+    }
+
+</script>

@@ -1,0 +1,36 @@
+{% extends "ui_new/base.html" %}
+
+
+{% block title %}
+Samples - {{title}}
+{% endblock %}
+
+{% block body %}
+
+{% include 'ui_new/user/projects/projects_link.html' %}
+{% include 'ui_new/user/samples/samples_remove.html' %} 
+
+{% include 'ui_new/user/breadcrumbs/breadcrumbs.html' %}
+
+{% include 'ui_new/messages.html' %}
+
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-2 custom-color-color5 lighten-3 p-3" style="overflow-y:auto;max-height: 75vh">
+            {% include 'ui_new/user/samples/samples_overview_form.html' %}
+        </div>
+        <div class="col-10 p-3">
+            {% include 'ui_new/user/samples/samples_overview_table.html' %}
+        </div>
+    </div>
+</div>
+
+<script>
+    $(document).ready(function(){
+        $(".return_page").val(window.location.pathname);
+        HighlightProjectActive("{{project_pk}}");
+        
+    });
+</script>
+
+{% endblock %}

@@ -1,0 +1,69 @@
+{% extends "ui_new/base.html" %}
+
+{% block title %}
+Project - {{title}}
+{% endblock %}
+
+{% block body %}
+
+{% include 'ui_new/admin/projects/projects_link.html' %}
+{% include 'ui_new/admin/gene_specifications/gene_specifications_import.html' %}
+
+{% include 'ui_new/messages.html' %}
+
+<div class="container mt-5">
+    <div class="row">
+        <div class="col custom-bg-color2 p-3 mx-2">
+            <div class="p-2 bg-white h-100">
+                <div class="container">
+                    <h5 class="text-center p-2">
+                        <a href="{% url 'patient_specifications_add' project.pk %}" class="btn btn-block btn-lg custom-button-color1 font-weight-bold">Patient Specifications</a>
+                    </h5>
+                </div>
+            </div>
+        </div>
+        <div class="col custom-bg-color2 p-3 mx-2">
+            <div class="p-2 bg-white h-100">
+                <div class="container">
+                    <h5 class="text-center p-2">
+                        <a href="{% url 'sample_specifications_add' project.pk %}" class="btn btn-block btn-lg custom-button-color1 font-weight-bold">Sample Specifications</a>
+                    </h5>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="row">
+        <!-- <div class="col-1 m-1">
+            <a href="{% url 'patient_specifications_add' project.pk %}" class="btn btn-block btn-lg custom-button-color1 font-weight-bold">Patient Specification</a>
+            <a href="#" class="btn btn-block btn-lg custom-button-color1 font-weight-bold">Sample Specification</a>
+        </div> -->
+        <div class="col custom-bg-color2 p-3 mx-2">
+            <!-- <div class="mt-4 p-4 bg-white"> -->
+            <div class="p-2 bg-white h-100">
+              {% include 'ui_new/admin/gene_specifications/project_gene_specifications2.html' %}
+            </div>
+
+        </div>
+        <div class="col custom-bg-color2 p-3 mx-2">
+            <!-- <div class="mt-4 p-4 bg-white"> -->
+            <div class="p-2 bg-white h-100">
+                {% include 'ui_new/admin/chipset_specifications/project_chipset_specifications2.html' %}
+              </div>
+
+        </div>
+    </div>
+</div>
+
+
+<script>
+    $(document).ready(function(){
+        
+        HighlightProjectActive("{{project.pk}}");
+    
+        // expand tree
+        $(".custom-method-anchor").click();
+        
+    });
+</script>
+
+{% endblock %}

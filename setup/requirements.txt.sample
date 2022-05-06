@@ -1,0 +1,14 @@
+Django
+django-cleanup
+requests
+django-model-utils
+django-crispy-forms
+django_select2
+django-extensions
+pandas
+djangorestframework
+djangorestframework-jwt
+httpie
+pyparsing
+pydot
+nodeenv

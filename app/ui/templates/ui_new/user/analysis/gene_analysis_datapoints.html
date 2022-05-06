@@ -1,0 +1,283 @@
+{% load crispy_forms_tags %}
+{% load filters %}
+
+<form method="post" action="#">
+    {% csrf_token %}
+
+    {% if specdpts|arraycount %}
+        <span id="custom_add_dptsinputrows_span"></span>
+
+        <button type="button" class="btn custom-button-color7" id="custom_add_dptsinputrow_btn">Add</button>
+
+        <div class="text-center mt-2">
+            <input type="hidden" name="custom_pks" id="custom_pks" value="">
+            <input type="hidden" name="custom_counter_ids" id="custom_counter_ids" value="">
+            <input type="hidden" class="access_type" name="access_type" value="add">
+            <a href="{% if request.GET.return == 'sample' %}{% url 'sample_view_user' sample.pk %}{% elif request.GET.return == 'samples_overview' %}{% url 'samples_view_user' project_pk %}{% else %}{% url 'analysis_genes_add_remove' sample.pk %}{% endif %}" class="btn custom-button-color8">Back</a>
+            <button id="custom_dpts_reset_btn" type="button" class="btn custom-button-color2">Reset</button>
+            {% if currentdptsrows %}
+                <button id="custom_dpts_edit_btn" type="button" class="btn custom-button-color10">Edit</button>
+            {% endif %}
+            <button id="custom_dpts_submit_btn2" type="button" class="btn custom-button-color4">Submit</button>
+            <button id="custom_dpts_submit_btn" type="submit" style="display:none;" disabled>Submit</button>
+        </div>
+    {% else %}
+    <div class="text-center mt-4">
+        <input type="hidden" class="access_type" name="access_type" value="add">
+        <p>No datapoints available for this result</p>
+        <a href="{% if request.GET.return == 'sample' %}{% url 'sample_view_user' sample.pk %}{% elif request.GET.return == 'samples_overview' %}{% url 'samples_view_user' project_pk %}{% else %}{% url 'analysis_genes_add_remove' sample.pk %}{% endif %}" class="btn custom-button-color8">Back</a>
+        <button id="custom_dpts_submit_btn" type="submit" class="btn custom-button-color4">Continue</button>
+    </div>
+    {% endif %}
+</form>
+
+{% verbatim %}
+<script id="add_dptsinputrow" type="text/x-handlebars-template">
+
+    <div id="custom_counter_{{counteri}}" data-counteri="{{counteri}}">
+        <span id="custom_add_dptsinput_span_{{counteri}}" class="d-flex flex-row flex-wrap"></span>
+
+        <button id="custom_counter_{{counteri}}_delete_btn" type="button" class="btn btn-danger custom_counter_id_delete_btn">Delete</button>
+        <hr>
+    </div>
+
+</script>
+<script id="add_dptsinput" type="text/x-handlebars-template">
+
+<!-- varchar -->
+{{#ifEquals dpttype "input"}}
+<div class="form-group col-3 p-4 rounded border border-white grey lighten-3">
+    <label for="custom_add_{{counteri}}_{{pk}}">{{name}}</label>
+    <input type="text" class="form-control custom-dpts-value custom-dpts-input" id="custom_add_{{counteri}}_{{pk}}" name="custom_add_{{counteri}}_{{pk}}" {{edit_disabled}}>
+    <small>{{helptext}}</small>
+</div>
+{{/ifEquals}}
+
+<!-- integer -->
+{{#ifEquals dpttype "select"}}
+<div class="form-group col-3 p-4 rounded border border-white grey lighten-3">
+    <label for="custom_add_{{counteri}}_{{pk}}">{{name}}</label>
+    <select class="form-control custom-dpts-value custom-dpts-select" id="custom_add_{{counteri}}_{{pk}}" name="custom_add_{{counteri}}_{{pk}}" {{edit_disabled}}>
+        <option value="" selected>Please select a value</option>
+        {{#each options}}
+            <option value="{{this}}">{{this}}</option>
+        {{/each}}
+    </select>
+    <small>{{helptext}}</small>
+</div>
+{{/ifEquals}}
+
+</script>
+{% endverbatim %}
+
+<script type="text/javascript">
+$(document).ready(function(){
+
+    specdpts = {{specdpts|safe}};
+    currentdptsrows = {{currentdptsrows|safe}};
+    custom_pks = [];
+    custom_counter_ids = [];
+    specdpts_val_def = {};
+
+    // edit button
+    $("#custom_dpts_edit_btn").on("click", function(){
+        let searchsubstr = window.location.search.substr(1);
+        if(searchsubstr !== "") {
+            window.location.href = window.location.pathname + "?" + searchsubstr + "&edit=true";
+        } else {
+            window.location.href = window.location.pathname
+        }
+    });
+
+    // access_type
+    if("{{request.GET.edit}}" == "true") {
+        $(".access_type").val('edit');
+        $("#custom_dpts_edit_btn").prop("disabled", true);
+    }
+
+    // handlebars
+    var add_dptsinputrow = Handlebars.compile($("#add_dptsinputrow").html());
+    var add_dptsinput = Handlebars.compile($("#add_dptsinput").html());
+
+    Handlebars.registerHelper('ifEquals', function(arg1, arg2, options) {
+        return (arg1 == arg2) ? options.fn(this) : options.inverse(this);
+    });
+
+    var edit_disabled = "disabled";
+    if(("{{request.GET.edit}}" == "true" && {{currentdptsrows|safe}}.length > 0) || ({{currentdptsrows|safe}}.length <= 0)) {
+        edit_disabled = "";
+    }
+
+    // defining counter
+    var counteri = 0;
+
+    // add button
+    $("#custom_add_dptsinputrow_btn").on("click", function(){
+        counteri++;
+
+        custom_counter_ids.push(counteri);
+
+        $("#custom_add_dptsinputrows_span").append(
+            add_dptsinputrow({
+                'counteri': counteri
+            })
+        );
+
+        // delete button
+        $(".custom_counter_id_delete_btn").on("click", function(){
+            $(this).parent('div').remove();
+            var parent_div_tmp = $(this).parent('div');
+            custom_counter_ids.splice(custom_counter_ids.indexOf(parent_div_tmp.attr('data-counteri')), 1);
+
+        });
+        
+        // add row
+        $.each(specdpts, function(i, val){
+            
+            if(specdpts.length != custom_pks.length) {
+                custom_pks.push(val.pk);
+            }
+
+            var selectoptions, dpttype;
+            if (val.datapointtype__options.length > 0) {
+                selectoptions = val.datapointtype__options.split(',');
+            }  else {
+                selectoptions = [];
+            }
+
+            if(val.datapointtype__type == "boolean" || val.datapointtype__type == "select" || val.datapointtype__type == "multiple") {
+                dpttype = "select";
+            } else {
+                dpttype = "input";
+            }
+
+            $("#custom_add_dptsinput_span_" + counteri).append(
+                add_dptsinput({
+                    'pk': val.pk, // datapointtype pk
+                'default': val.default,
+                'dpttype': dpttype,
+                'name': val.datapointtype__name,
+                'helptext': val.datapointtype__helptext,
+                'options': selectoptions,
+                'edit_disabled': edit_disabled,
+                'counteri': counteri
+                })
+            );
+
+            let that = $("#custom_add_" + counteri + "_" + val.pk);
+
+            // add mandatory info
+            if (val.mandatory) {
+                that.prop("required", true);
+                // add star
+                that.siblings("label").append(' <span class="red-text font-weight-bold">*</span>');
+            }
+
+            // select input
+            if(dpttype == "select") {
+                // default
+                if(val.default) {
+                    that.val(val.default).trigger("change");
+                }
+                // multiple
+                if(val.datapointtype__type == "multiple") {
+                    that.prop("multiple", true);
+                    that.val(val.default.split(',')).trigger("change");
+                }
+            } else {
+                // default
+                if(val.default) {
+                    that.val(val.default);
+                }
+            }
+
+            // add numeric input
+            if (val.datapointtype__type == "integer" || val.datapointtype__type == "numeric") {
+                
+                that.prop("type", "number");
+
+                if(val.datapointtype__type == "integer") {
+                    that.prop("step", "1");
+                } else {
+                    that.prop("step", "0.0001") // just arbitrary
+                }
+            }
+
+            // add currentdpts to html
+
+
+            // add values to dict
+            specdpts_val_def["custom_add_" + counteri + "_" + val.pk] = $(that).val();
+
+        });
+
+        // set custom_pks, custom_counter_ids
+        $("#custom_pks").val(String(custom_pks));
+        $("#custom_counter_ids").val(String(custom_counter_ids));
+    });
+
+
+    // add existing data
+    $.each(currentdptsrows, function(i, val){
+        
+        if(custom_counter_ids.indexOf(val.pk) === -1) {
+            counteri = val.pk - 1;
+            $("#custom_add_dptsinputrow_btn").click();
+        }
+
+        // add to html
+        that = $("#custom_add_" + val.pk + "_" + val.datapoints__specdpts_id);
+        if(val.datapoints__specdpts__datapointtype__type == "select") {
+            that.val(val.datapoints__value).trigger("change");
+        } else {
+            that.val(val.datapoints__value);
+        }
+
+        specdpts_val_def["custom_add_" + val.pk + "_" + val.datapoints__specdpts_id] = $(that).val();
+
+        // remove delete button
+        $("#custom_counter_" + val.pk + "_delete_btn").remove();
+
+    });
+
+    // create new entry if not any
+    if(specdpts.length > 0 && currentdptsrows.length <= 0) {
+        $("#custom_add_dptsinputrow_btn").click();
+    }
+
+    // remove add button if not edit
+    if(edit_disabled) {
+        $("#custom_add_dptsinputrow_btn").remove();
+    }
+
+    // submit button
+    $("#custom_dpts_submit_btn2").on("click", function(){
+        if(specdpts.length > 0) {
+            // set custom_pks, custom_counter_ids
+            $("#custom_pks").val(String(custom_pks));
+            $("#custom_counter_ids").val(String(custom_counter_ids));
+            if(custom_counter_ids.length > 0) {
+                $("#custom_dpts_submit_btn").prop("disabled", false).click();
+            } else {
+                alert("Please add at least one set of datapoints before submitting")
+            }
+        } else {
+            $("#custom_dpts_submit_btn").prop("disabled", false).click();
+        }
+    });
+
+    // reset
+    $("#custom_dpts_reset_btn").on("click", function(){
+
+        $.each(specdpts_val_def, function(i, val) {
+            if($("#" + i).hasClass("custom-dpts-select")) {
+                $("#" + i).val(val).trigger("change");
+            } else {
+                $("#" + i).val(val);
+            }
+        });
+
+    });
+
+});
+</script>

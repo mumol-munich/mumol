@@ -1,0 +1,86 @@
+{% extends "ui_new/base.html" %}
+{% load filters %}
+
+{% block title %}
+AddPatientSpecifications - {{title}}
+{% endblock %}
+
+{% block body %}
+
+{% include 'ui_new/admin/projects/projects_link.html' %}
+{% include 'ui_new/admin/attributes/datapointtype_add.html' %}
+
+{% include 'ui_new/messages.html' %}
+<div class="container">
+    <div class="row">
+        <div class="col-7">
+            <ul id="custom_patientspec_dpts_list"></ul>
+            <div class="d-flex flex-row">
+            </div>
+            <form method="post" action="{% url 'patient_specifications_add' project_pk %}">
+                {% csrf_token %}
+                <h3>Patient Specifications</h3>
+                <br>
+                
+                <h5>Current</h5>
+                <div class="container" style="max-height:100px;overflow:auto;">
+                    {% for dpt in patientspec.patientdpts_patientspec.all|dpt_exclude_none %}
+                        <span class="badge custom-button-color5 m-1 p-2">{{dpt.datapointtype.name}}</span>
+                    {% empty %}
+                        None
+                    {% endfor %}
+                </div>
+
+                <br>
+
+                <h5>New</h5>
+                <table class="table table-sm overflow-auto">
+                    <thead>
+                        <tr>
+                            <th scope="col"><h6><strong>Datapoint Type</strong></h6></th>
+                            <th scope="col"><h6><strong>Mandatory</strong></h6></th>
+                            <th scope="col"><h6><strong>Default</strong></h6></th>
+                            <th scope="col"></th>
+                        </tr>
+                    </thead>
+                    <tbody id="custom_patientspec_table_tbody"></tbody>
+                </table>
+                <button type="button" class="btn custom-button-color4" id="custom_submit_btn" data-checkvar="false" disabled>Submit</button>
+                <br>
+                <!-- <span id="custom_patientspec_text">Please select datapoint types to add</span> -->
+                <input type="hidden" id="patient_specs" name="patient_specs" value="">
+                <button id="custom_submit_btn2" type="submit" style="display:none;" disabled></button>
+
+            </form>
+        </div>
+        <div class="col-4 offset-1 mt-5">
+            {% include 'ui_new/admin/attributes/datapointtypes_select.html' %}
+        </div>
+    </div>
+</div>
+
+<script type="text/javascript">
+$(document).ready(function(){
+
+    HighlightProjectActive("{{project_pk}}");
+
+    $(".return_page").val(window.location.pathname);
+
+    PatientSpecificationGetStorage("{{project_pk}}");
+
+    $("#custom_submit_btn").on("click", function(){
+        PatientSpecificationSetStorage("{{project_pk}}");
+        $("#patient_specs").val(localStorage.getItem("patient_specs"));
+        $("#custom_submit_btn2").prop("disabled", false).click();
+    });
+
+    PatientDptsAddBtn();
+
+
+
+
+});
+</script>
+
+{% endblock %}
+
