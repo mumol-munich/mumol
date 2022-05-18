@@ -20,7 +20,11 @@ if not sys.version_info >= (3, ):
 
 # check datamask
 print('Checking source directory...')
-datamask = os.path.dirname(os.path.dirname(os.path.realpath(__file__)))
+try:
+    datamask = os.path.dirname(os.path.dirname(os.path.realpath(__file__)))
+except:
+    datamask = "."
+
 if not os.path.isfile(f'{datamask}/setup/install.py'):
     sys.exit('Please execute it from datamsk directory')
 os.chdir(datamask)
@@ -72,23 +76,37 @@ else:
 # install pip requirements
 print('Install requirements...')
 process = subprocess.Popen([f'{binpath}/pip3', 'install', '-r', f'{datamask}/setup/requirements.txt', '--trusted-host', 'pypi.org', '--trusted-host', 'files.pythonhosted.org'], stdout = subprocess.PIPE, stderr = subprocess.PIPE)
-stdout, stderr = process.communicate()
-print(stdout)
-print(stderr)
+while process.poll() is None:
+    print(process.stdout.readline())
+
+process.stdout.read()
+process.stdout.close()
 
 # make migrations
 print('Detecting changes in the database...')
-process = subprocess.Popen([f'{binpath}/python', f'manage.py', 'makemigrations'], stdout = subprocess.PIPE, stderr = subprocess.PIPE)
-stdout, stderr = process.communicate()
-print(stdout)
-print(stderr)
+process = subprocess.Popen([f'{binpath}/python', f'{datamask}/app/manage.py', 'makemigrations'], stdout = subprocess.PIPE, stderr = subprocess.PIPE)
+while process.poll() is None:
+    print(process.stdout.readline())
+    print(process.stderr.readline())
+
+process.stdout.read()
+process.stderr.read()
+process.stdout.close()
+process.stderr.close()
+
 
 # migrate
 print('Migrate changes if necessary...')
-process = subprocess.Popen([f'{binpath}/python', f'manage.py', 'migrate'], stdout = subprocess.PIPE, stderr = subprocess.PIPE)
-stdout, stderr = process.communicate()
-print(stdout)
-print(stderr)
+process = subprocess.Popen([f'{binpath}/python', f'{datamask}/app/manage.py', 'migrate'], stdout = subprocess.PIPE, stderr = subprocess.PIPE)
+while process.poll() is None:
+    print(process.stdout.readline())
+    print(process.stderr.readline())
+
+process.stdout.read()
+process.stderr.read()
+process.stdout.close()
+process.stderr.close()
+
 
 print('Initial setup complete.')
 print(f'''
@@ -102,6 +120,7 @@ source {venv_path}/bin/activate && python manage.py runserver
 
 
 END
+please close the window or hit enter key
 ''')
 
 input()
