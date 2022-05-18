@@ -113,10 +113,10 @@ print(f'''
 Please execute the following from source directory ({datamask}/app),
 
 # linux
-source {venv_path}/bin/activate && python manage.py runserver
+source {venv_path}/bin/activate && python {datamask}/app/manage.py runserver
 
 # windows
-{venv_path}\\Scripts\\activate && python manage.py runserver
+{venv_path}\\Scripts\\activate && python {datamask}/app/manage.py runserver
 
 
 END
