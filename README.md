@@ -1,11 +1,11 @@
-# datamask
+# MuMol
 
 ## Requirements
 python3
 
 # Installation
 ```sh
-cd datamask
+cd mumol
 
 python setup/install.py
 ```
