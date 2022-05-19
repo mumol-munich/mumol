@@ -75,7 +75,7 @@ else:
 
 # install pip requirements
 print('Install requirements...')
-process = subprocess.Popen([f'{binpath}/pip3', 'install', '-r', f'{datamask}/setup/requirements.txt', '--trusted-host', 'pypi.org', '--trusted-host', 'files.pythonhosted.org'], stdout = subprocess.PIPE, stderr = subprocess.PIPE)
+process = subprocess.Popen([f'{binpath}/pip3', 'install', '-r', f'{datamask}/setup/requirements.txt', '--trusted-host', 'pypi.org', '--trusted-host', 'pypi.python.org', '--trusted-host', 'files.pythonhosted.org'], stdout = subprocess.PIPE, stderr = subprocess.PIPE)
 while process.poll() is None:
     print(process.stdout.readline())
 
