@@ -5,6 +5,12 @@ from django.contrib import messages
 from django.http import HttpResponseRedirect
 from django.contrib.auth.decorators import login_required
 from django.views.decorators.http import require_http_methods
+from django.core.paginator import Paginator
+from django.db.models import Count
+
+import operator
+from django.db.models import Q
+from functools import reduce
 
 import json
 
@@ -16,6 +22,12 @@ from ..config import content
 
 @login_required
 def samples_view_user(request, project_pk):
+    page_num = request.GET.get('page', 1)
+    page_length = request.GET.get('length')
+    if not page_length:
+        page_length = 5
+    if not int(page_length) in [5, 10, 25, 50]:
+        page_length = 5
     try:
         # check user
         response = fn_auth_project_user(request.user, project_pk)
@@ -23,10 +35,43 @@ def samples_view_user(request, project_pk):
             messages.error(request, response['message'])
             return response['return_page']
         samples = Sample.objects.prefetch_related('projectid').filter(projectid__project_id = project_pk)
+        samples = samples.annotate(gcount = Count('geneanalysis_sample'), ccount = Count('chipsetanalysis_sample'))
+        # filter
+        filterdict = {}
+        for tag in request.GET:
+            if tag.startswith('tag.'):
+                tagwords = tag.split(".")
+                if tagwords[1] == 'sample':
+                    dateofreceipt = request.GET[tag].split(" ")[0].split(".")
+                    samples = samples.filter(reduce(operator.and_, (Q(dateofreceipt__contains = int(dor)) for dor in dateofreceipt)))
+                if tagwords[1] == 'projectid':
+                    filterdict["projectid__projectid__contains"] = request.GET[tag]
+                if tagwords[1] == 'patient':
+                    if tagwords[2] == 'dateofbirth':
+                        dateofbirth = request.GET[tag].split(".")
+                        samples = samples.filter(reduce(operator.and_, (Q(projectid__patient__dateofbirth__contains = int(dob)) for dob in dateofbirth)))
+                    else:
+                        filterdict[f"projectid__patient__{tagwords[2]}__contains"] = request.GET[tag]
+                if tagwords[1] == "patientdpt":
+                    filterdict["projectid__patientinfo__patientspec__patientdpts_patientspec__id"] = tagwords[2]
+                    filterdict["projectid__patientinfo__datapoints__value__contains"] = request.GET[tag]
+                if tagwords[1] == 'count':
+                    if tagwords[2] == 'geneanalysis':
+                        filterdict["gcount"] = request.GET[tag]
+                    if tagwords[2] == 'chipsetanalysis':
+                        filterdict["ccount"] = request.GET[tag]
+                if tagwords[1] == 'sampledpt':
+                    filterdict["sampleinfo__samplespec__sampledpts_samplespec__id"] = tagwords[2]
+                    filterdict["sampleinfo__datapoints__value__contains"] = request.GET[tag]
+        samples = samples.filter(**filterdict)
+        # filter
     except Exception as e:
         messages.error(request, e)
         messages.error(request, 'Error in accessing requested project')
         return HttpResponseRedirect(reverse('projects_view_user'))
+    paginator = Paginator(samples, page_length)
+    page_obj = paginator.get_page(page_num)
+    last_sample = samples.last()
     if request.user.profile.is_admin:
         projects = Project.objects.order_by('-pk')
     else:
@@ -42,7 +87,7 @@ def samples_view_user(request, project_pk):
     formpatient = PatientAddForm()
     formprojectid = ProjectIdAddForm()
     formsample = SampleAddForm()
-    return render(request, 'ui_new/user/samples/samples_overview.html', dict(projects = projects, project_pk = project_pk, samples = samples, patientdpts = json.dumps(patientdpts), sampledpts = json.dumps(sampledpts), formpatient = formpatient, formprojectid = formprojectid, formsample = formsample, current_page = 'samples', current_line = "samples"))
+    return render(request, 'ui_new/user/samples/samples_overview.html', dict(projects = projects, project_pk = project_pk, page_obj = page_obj, patientdpts = json.dumps(patientdpts), sampledpts = json.dumps(sampledpts), formpatient = formpatient, formprojectid = formprojectid, formsample = formsample, current_page = 'samples', current_line = "samples", page_length = page_length, last_sample = last_sample))
 
 @login_required
 @require_http_methods(['POST'])

@@ -54,7 +54,6 @@ def patients_view_user(request, project_pk):
             if tagwords[1] == 'patient':
                 if tagwords[2] == "dateofbirth":
                     dateofbirth = request.GET[tag].split(".")
-                    print(dateofbirth)
                     projectids = projectids.filter(reduce(operator.and_, (Q(patient__dateofbirth__contains = int(dob)) for dob in dateofbirth)))
                 else:
                     filterdict[f"patient__{tagwords[2]}__contains"] = request.GET[tag]

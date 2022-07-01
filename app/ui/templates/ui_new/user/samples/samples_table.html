@@ -61,6 +61,9 @@ $(document).ready(function(){
             style: 'multi',
             selector: 'td:first-child'
         },
+        initComplete: function(){
+            $("#samples_table").wrap("<div style='overflow:auto; width:100%;position:relative;'></div>");
+        }
 
     });
 

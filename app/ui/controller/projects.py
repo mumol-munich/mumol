@@ -79,7 +79,7 @@ def projects_view_user(request):
                     filterdict["sample__projectid__patientinfo__datapoints__value__contains"] = request.GET[tag]
                 if tagwords[1] == 'geneanalysis':
                     dateofreceipt = request.GET[tag].split(" ")[0].split(".")
-                    geneanalyses = geneanalyses.filter(reduce(operator.and_, (Q(sample__dateofreceipt__contains = dor) for dor in dateofreceipt)))
+                    geneanalyses = geneanalyses.filter(reduce(operator.and_, (Q(sample__dateofreceipt__contains = int(dor)) for dor in dateofreceipt)))
                 if tagwords[1] == 'sampledpt':
                     filterdict["sample__sampleinfo__samplespec__sampledpts_samplespec__id"] = tagwords[2]
                     filterdict["sample__sampleinfo__datapoints__value__contains"] = request.GET[tag]
