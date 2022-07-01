@@ -141,10 +141,10 @@ Projects - {{title}}
 
     <div style="font-size:1.5em;">
     {% if page_obj.has_previous %}
-        <a class="btn-link" href="?project_redirect={{ project_redirect }}&type={{ analysis_type }}&page={{ page_obj.previous_page_number }}">« Previous page</a>
+        <a class="btn-link" href="?project_redirect={{ project_redirect }}&type={{ analysis_type }}&length={{page_length}}&page={{ page_obj.previous_page_number }}">« Previous page</a>
     
         {% if page_obj.number > 3 %}
-        <a class="btn-link" href="?project_redirect={{ project_redirect }}&type={{ analysis_type }}&page=1">1</a>
+        <a class="btn-link" href="?project_redirect={{ project_redirect }}&type={{ analysis_type }}&length={{page_length}}&page=1">1</a>
         {% if page_obj.number > 4 %}
             <span>...</span>
         {% endif %}
@@ -153,21 +153,21 @@ Projects - {{title}}
     
     {% for num in page_obj.paginator.page_range %}
         {% if page_obj.number == num %}
-        <a class="red-text btn-link" style="border: 1px solid grey; padding: 2px" href="?project_redirect={{ project_redirect }}&type={{ analysis_type }}&page={{ num }}">{{ num }}</a>
+        <a class="red-text btn-link" style="border: 1px solid grey; padding: 2px" href="?project_redirect={{ project_redirect }}&type={{ analysis_type }}&length={{page_length}}&page={{ num }}">{{ num }}</a>
         {% elif num > page_obj.number|add:'-3' and num < page_obj.number|add:'3' %}
-        <a class="btn-link" href="?project_redirect={{ project_redirect }}&type={{ analysis_type }}&page={{ num }}">{{ num }}</a>
+        <a class="btn-link" href="?project_redirect={{ project_redirect }}&type={{ analysis_type }}&length={{page_length}}&page={{ num }}">{{ num }}</a>
         {% endif %}
     {% endfor %}
     
     {% if page_obj.has_next %}
         {% if page_obj.number < page_obj.paginator.num_pages|add:'-3' %}
         <span>...</span>
-        <a class="btn-link" href="?project_redirect={{ project_redirect }}&type={{ analysis_type }}&page={{ page_obj.paginator.num_pages }}">{{ page_obj.paginator.num_pages }}</a>
+        <a class="btn-link" href="?project_redirect={{ project_redirect }}&type={{ analysis_type }}&length={{page_length}}&page={{ page_obj.paginator.num_pages }}">{{ page_obj.paginator.num_pages }}</a>
         {% elif page_obj.number < page_obj.paginator.num_pages|add:'-2' %}
-        <a class="btn-link" href="?project_redirect={{ project_redirect }}&type={{ analysis_type }}&page={{ page_obj.paginator.num_pages }}">{{ page_obj.paginator.num_pages }}</a>
+        <a class="btn-link" href="?project_redirect={{ project_redirect }}&type={{ analysis_type }}&length={{page_length}}&page={{ page_obj.paginator.num_pages }}">{{ page_obj.paginator.num_pages }}</a>
         {% endif %}
     
-        <a class="btn-link" href="?project_redirect={{ project_redirect }}&type={{ analysis_type }}&page={{ page_obj.next_page_number }}">Next Page »</a>
+        <a class="btn-link" href="?project_redirect={{ project_redirect }}&type={{ analysis_type }}&length={{page_length}}&page={{ page_obj.next_page_number }}">Next Page »</a>
     {% endif %}
     </div>
   
@@ -218,7 +218,7 @@ $(document).ready(function(){
             },
             { text: 'Clear filter', attr: { id: 'custom_submit_filter_btn', class: 'btn btn-sm custom-button-color5'},
             action: function( e, dt, button, config ) {
-                window.location = "{% url 'projects_view_user' %}?project_redirect={{project_redirect}}&type={{analysis_type}}";
+                window.location = "{% url 'projects_view_user' %}?project_redirect={{project_redirect}}&type={{analysis_type}}&length={{page_length}}";
             }
             },
             { text: 'TSV Export', fieldBoundary: '', title: "{{analysis_type}}" + '_analysis', extend: 'csvHtml5', fieldSeparator: '\t', extension: '.tsv', attr: { class: 'btn btn-sm custom-button-color2' }},

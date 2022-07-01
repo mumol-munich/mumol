@@ -62,10 +62,10 @@
 
 <div style="font-size:1.5em;">
     {% if page_obj.has_previous %}
-        <a class="btn-link" href="?page={{ page_obj.previous_page_number }}">« Previous page</a>
+        <a class="btn-link" href="?length={{page_length}}&page={{ page_obj.previous_page_number }}">« Previous page</a>
     
         {% if page_obj.number > 3 %}
-        <a class="btn-link" href="?page=1">1</a>
+        <a class="btn-link" href="?length={{page_length}}&page=1">1</a>
         {% if page_obj.number > 4 %}
             <span>...</span>
         {% endif %}
@@ -74,21 +74,21 @@
     
     {% for num in page_obj.paginator.page_range %}
         {% if page_obj.number == num %}
-        <a class="red-text btn-link" style="border: 1px solid grey; padding: 2px" href="?page={{ num }}">{{ num }}</a>
+        <a class="red-text btn-link" style="border: 1px solid grey; padding: 2px" href="?length={{page_length}}&page={{ num }}">{{ num }}</a>
         {% elif num > page_obj.number|add:'-3' and num < page_obj.number|add:'3' %}
-        <a class="btn-link" href="?page={{ num }}">{{ num }}</a>
+        <a class="btn-link" href="?length={{page_length}}&page={{ num }}">{{ num }}</a>
         {% endif %}
     {% endfor %}
     
     {% if page_obj.has_next %}
         {% if page_obj.number < page_obj.paginator.num_pages|add:'-3' %}
         <span>...</span>
-        <a class="btn-link" href="?page={{ page_obj.paginator.num_pages }}">{{ page_obj.paginator.num_pages }}</a>
+        <a class="btn-link" href="?length={{page_length}}&page={{ page_obj.paginator.num_pages }}">{{ page_obj.paginator.num_pages }}</a>
         {% elif page_obj.number < page_obj.paginator.num_pages|add:'-2' %}
-        <a class="btn-link" href="?page={{ page_obj.paginator.num_pages }}">{{ page_obj.paginator.num_pages }}</a>
+        <a class="btn-link" href="?length={{page_length}}&page={{ page_obj.paginator.num_pages }}">{{ page_obj.paginator.num_pages }}</a>
         {% endif %}
     
-        <a class="btn-link" href="?page={{ page_obj.next_page_number }}">Next Page »</a>
+        <a class="btn-link" href="?length={{page_length}}&page={{ page_obj.next_page_number }}">Next Page »</a>
     {% endif %}
     </div>
 
@@ -110,7 +110,7 @@ $(document).ready(function(){
 
     mytable = $("#patients_table").DataTable({
         // dom: 'Bfrtip',
-        dom: "<'row'<'col-sm-12 col-md-5'B><'col-sm-12 col-md-2'l><'col-sm-12 col-md-5'f>>" + "<'row'<'col-sm-12'tr>>" + "<'row'<'col-sm-12 col-md-5'i><'col-sm-12 col-md-7'p>>",
+        dom: "<'row'<'col-sm-12 col-md-5'B><'col-sm-12 col-md-2'l><'col-sm-12 col-md-5'f>>" + "<'row'<'col-sm-12'tr>>",
         buttons: [
             { extend: 'selectNone', attr: { id: 'custom_selectnone_btn', class: 'btn btn-sm custom-button-color2' } },
             // { extend: 'csvHtml5', attr: { class: 'btn btn-sm custom-button-color2' } },
@@ -130,15 +130,16 @@ $(document).ready(function(){
             },
             { text: 'Clear filter', attr: { id: 'custom_submit_filter_btn', class: 'btn btn-sm custom-button-color5'},
             action: function( e, dt, button, config ) {
-                window.location = "{% url 'patients_view_user' project_pk %}";
+                window.location = "{% url 'patients_view_user' project_pk %}?length={{page_length}}";
             }
             },
         ],
         pagingType: "full_numbers",
         lengthMenu: [
-            [10, 25, 50, -1],
-            [10, 25, 50, "All"]
+            [5, 10, 25, 50],
+            [5, 10, 25, 50]
         ],
+        pageLength: "{{page_length}}",
         columnDefs: [
             {
             orderable: false,
@@ -266,6 +267,13 @@ $(document).ready(function(){
     //     alert("Selected patient is not registered to current project");
     //     return;
     // });
+
+    $("select[name='patients_table_length']").on("change", function(){
+        // window.location = window.location.href + "&length=" + $(this).val();
+        var href = new URL(window.location.href);
+        href.searchParams.set('length', $(this).val());
+        window.location = href.href;
+    });
 
 });
 </script>
