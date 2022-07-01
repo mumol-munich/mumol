@@ -14,7 +14,7 @@ Projects - {{title}}
 <div class="container-fluid">
 
     <table id="analysis_table" class="table table-bordered table-sm table-striped" cellspacing="0" width="100%">
-        {% if analysis_type == 'gene' %}
+        {% if geneanalyses %}
         <thead>
             <tr>
                 <th class="th-sm">Project</th>
@@ -42,7 +42,7 @@ Projects - {{title}}
             </tr>
         </thead>
         <tbody>
-            {% for geneanalysis in page_obj %}
+            {% for geneanalysis in geneanalyses %}
                 {% for datapointsrow in geneanalysis.datapointsrows.all %}
                     {% with sample=geneanalysis.sample projectid=geneanalysis.sample.projectid %}
                     <tr>
@@ -102,7 +102,7 @@ Projects - {{title}}
             </tr>
         </thead>
         <tbody>
-            {% for chipsetanalysis in page_obj %}
+            {% for chipsetanalysis in chipsetanalyses %}
                 {% for gene in chipsetanalysis.chipsetspec.genes.all %}
                     {% with sample=chipsetanalysis.sample projectid=chipsetanalysis.sample.projectid %}
                     <tr>
@@ -138,40 +138,9 @@ Projects - {{title}}
         </tbody>
         {% endif %}
     </table>
-
-    <div style="font-size:1.5em;">
-    {% if page_obj.has_previous %}
-        <a class="btn-link" href="?project_redirect={{ project_redirect }}&type={{ analysis_type }}&page={{ page_obj.previous_page_number }}">« Previous page</a>
-    
-        {% if page_obj.number > 3 %}
-        <a class="btn-link" href="?project_redirect={{ project_redirect }}&type={{ analysis_type }}&page=1">1</a>
-        {% if page_obj.number > 4 %}
-            <span>...</span>
-        {% endif %}
-        {% endif %}
-    {% endif %}
-    
-    {% for num in page_obj.paginator.page_range %}
-        {% if page_obj.number == num %}
-        <a class="red-text btn-link" style="border: 1px solid grey; padding: 2px" href="?project_redirect={{ project_redirect }}&type={{ analysis_type }}&page={{ num }}">{{ num }}</a>
-        {% elif num > page_obj.number|add:'-3' and num < page_obj.number|add:'3' %}
-        <a class="btn-link" href="?project_redirect={{ project_redirect }}&type={{ analysis_type }}&page={{ num }}">{{ num }}</a>
-        {% endif %}
-    {% endfor %}
-    
-    {% if page_obj.has_next %}
-        {% if page_obj.number < page_obj.paginator.num_pages|add:'-3' %}
-        <span>...</span>
-        <a class="btn-link" href="?project_redirect={{ project_redirect }}&type={{ analysis_type }}&page={{ page_obj.paginator.num_pages }}">{{ page_obj.paginator.num_pages }}</a>
-        {% elif page_obj.number < page_obj.paginator.num_pages|add:'-2' %}
-        <a class="btn-link" href="?project_redirect={{ project_redirect }}&type={{ analysis_type }}&page={{ page_obj.paginator.num_pages }}">{{ page_obj.paginator.num_pages }}</a>
-        {% endif %}
-    
-        <a class="btn-link" href="?project_redirect={{ project_redirect }}&type={{ analysis_type }}&page={{ page_obj.next_page_number }}">Next Page »</a>
-    {% endif %}
-    </div>
-  
 </div>
+
+
 
 
 <script type="text/javascript">
@@ -187,8 +156,7 @@ $(document).ready(function(){
 
 
     mytable = $("#analysis_table").DataTable({
-        // dom: "<'row'<'col-sm-12 col-md-5'B><'col-sm-12 col-md-2'l><'col-sm-12 col-md-5'f>>" + "<'row'<'col-sm-12'tr>>",
-        dom: "<'row'<'col-sm-12 col-md-5'B><'col-sm-12 col-md-2'l><'col-sm-12 col-md-5'f>>" + "<'row'<'col-sm-12'tr>>",
+        dom: "<'row'<'col-sm-12 col-md-5'B><'col-sm-12 col-md-2'l><'col-sm-12 col-md-5'f>>" + "<'row'<'col-sm-12'tr>>" + "<'row'<'col-sm-12 col-md-5'i><'col-sm-12 col-md-7'p>>",
         buttons: [
             { 
             text: 'Gene Analysis', 
@@ -206,12 +174,9 @@ $(document).ready(function(){
         ],
         pagingType: "full_numbers",
         lengthMenu: [
-            // [10, 25, 50, -1],
-            // [10, 25, 50, "All"]
-            [5, 10, 25, 50],
-            [5, 10, 25, 50]
+            [10, 25, 50, -1],
+            [10, 25, 50, "All"]
         ],
-        pageLength: "{{ page_length }}",
         columnDefs: [
         {"className": "text-center", "targets": "_all"}
         ],
@@ -275,12 +240,6 @@ $(document).ready(function(){
                     },
     });
 
-    $("select[name='analysis_table_length']").on("change", function(){
-        // window.location = window.location.href + "&length=" + $(this).val();
-        var href = new URL(window.location.href);
-        href.searchParams.set('length', $(this).val());
-        window.location = href.href;
-    });
 
    
 });

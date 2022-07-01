@@ -4,8 +4,6 @@ from django.contrib import messages
 from django.http import HttpResponse, HttpResponseRedirect
 from django.contrib.auth.decorators import login_required
 from django.views.decorators.http import require_http_methods
-from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
-
 
 from ..models import ChipsetAnalysis, PatientDPTs, SampleDPTs, Project, User, GeneAnalysis, DatapointType
 from ..decorators import admin_required
@@ -18,12 +16,6 @@ from ..functions import fn_convert_genespec_json, fn_auth_project_user
 def projects_view_user(request):
     project_redirect = request.GET.get('project_redirect')
     analysis_type = request.GET.get('type')
-    page_num = request.GET.get('page', 1)
-    page_length = request.GET.get('length')
-    if not page_length:
-        page_length = 5
-    if not int(page_length) in [5, 10, 25, 50]:
-        page_length = 5
     if request.user.project_user.exists():
         first_project_id = request.user.project_user.first().pk
     else:
@@ -49,13 +41,10 @@ def projects_view_user(request):
     if not analysis_type or analysis_type != 'chipset':
         analysis_type = 'gene'
         geneanalyses = GeneAnalysis.objects.filter(sample__projectid__project_id__in = list(projects.values_list('id', flat = True)))
-        paginator = Paginator(geneanalyses, page_length)
     else:
         chipsetanalyses = ChipsetAnalysis.objects.filter(sample__projectid__project_id__in = list(projects.values_list('id', flat = True)))
-        paginator = Paginator(chipsetanalyses, page_length)
-    page_obj = paginator.get_page(page_num)
     datapointtypes = DatapointType.objects.values('pk', 'name')
-    return render(request, 'ui_new/user/projects/projects.html', dict(projects = projects, analysis_type = analysis_type, datapointtypes = datapointtypes, project_link_deny = True, project_redirect = project_redirect, first_project_id = first_project_id, patientdpts = patientdpts, sampledpts = sampledpts, page_obj = page_obj, page_length = page_length))
+    return render(request, 'ui_new/user/projects/projects.html', dict(projects = projects, geneanalyses = geneanalyses, chipsetanalyses = chipsetanalyses, analysis_type = analysis_type, datapointtypes = datapointtypes, project_link_deny = True, project_redirect = project_redirect, first_project_id = first_project_id, patientdpts = patientdpts, sampledpts = sampledpts))
 
 @login_required
 def project_view_user(request, project_pk):

@@ -262,6 +262,7 @@ class GeneAnalysis(models.Model): # user
     
     class Meta:
         unique_together = ('sample', 'specification',)
+        ordering = ['-pk']
 
 class ChipsetAnalysis(models.Model): # user
     sample = models.ForeignKey(
@@ -278,6 +279,7 @@ class ChipsetAnalysis(models.Model): # user
     
     class Meta:
         unique_together = ('sample', 'chipsetspec',)
+        ordering = ['-pk']
 
 
 # class GeneAnalysis(models.Model):  # user
