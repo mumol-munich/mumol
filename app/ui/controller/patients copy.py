@@ -9,10 +9,6 @@ from django.core.paginator import Paginator
 
 import uuid, json
 
-import operator
-from django.db.models import Q
-from functools import reduce
-
 from ..models import Patient, PatientDPTs, Project, ProjectId, PatientInfo, PatientDatapoint
 from ..forms import SampleAddForm, PatientAddForm, ProjectIdAddForm
 from ..functions import fn_checkvalidator, fn_auth_project_user, fn_create_or_get_none_datapointtype, fn_generate_projectid
@@ -39,30 +35,6 @@ def patients_view_user(request, project_pk):
     # patients = Patient.objects.order_by('-pk')
     # patients = Patient.objects.filter(projectid_patient__project_id = project_pk).order_by('pk')
     projectids = ProjectId.objects.filter(project_id = project_pk)
-    last_projectid = projectids.last()
-    # filter
-    filterdict = {}
-    for tag in request.GET:
-        if tag.startswith('tag.'):
-            tagwords = tag.split(".")
-            if tagwords[1] == 'projectid':
-                if tagwords[2] == 'projectid':
-                    filterdict["projectid__contains"] = request.GET[tag]
-                if tagwords[2] == 'otherids':
-                    messages.error(request, 'Filtering based on otherids are not available')
-                    return HttpResponseRedirect(reverse('patients_view_user', kwargs=dict(project_pk = project_pk)))
-            if tagwords[1] == 'patient':
-                if tagwords[2] == "dateofbirth":
-                    dateofbirth = request.GET[tag].split(".")
-                    print(dateofbirth)
-                    projectids = projectids.filter(reduce(operator.and_, (Q(patient__dateofbirth__contains = int(dob)) for dob in dateofbirth)))
-                else:
-                    filterdict[f"patient__{tagwords[2]}__contains"] = request.GET[tag]
-            if tagwords[1] == 'patientdpt':
-                filterdict["patientinfo__patientspec__patientdpts_patientspec__id"] = tagwords[2]
-                filterdict["patientinfo__datapoints__value__contains"] = request.GET[tag]
-    projectids = projectids.filter(**filterdict)
-    # filter
     paginator = Paginator(projectids, page_length)
     page_obj = paginator.get_page(page_num)
     try:
@@ -71,7 +43,7 @@ def patients_view_user(request, project_pk):
         patientdpts = []
     formpatient = PatientAddForm()
     formprojectid = ProjectIdAddForm()
-    return render(request, 'ui_new/user/patients/patients.html', dict(project_pk = project_pk, patientdpts = json.dumps(patientdpts), projects = projects, page_obj = page_obj, formpatient = formpatient, formprojectid = formprojectid, current_page = 'patients', current_line = "patients", page_length = page_length, last_projectid = last_projectid))
+    return render(request, 'ui_new/user/patients/patients.html', dict(project_pk = project_pk, patientdpts = json.dumps(patientdpts), projects = projects, projectids = projectids, formpatient = formpatient, formprojectid = formprojectid, current_page = 'patients', current_line = "patients", page_length = page_length))
 
 @login_required
 @require_http_methods(['POST'])

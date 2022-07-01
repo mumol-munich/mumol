@@ -5,7 +5,7 @@ from django.contrib import messages
 from django.http import HttpResponse, HttpResponseRedirect
 from django.contrib.auth.decorators import login_required
 from django.views.decorators.http import require_http_methods
-from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
+from django.core.paginator import Paginator
 
 import operator
 from django.db.models import Q
@@ -71,7 +71,7 @@ def projects_view_user(request):
                         # dateofbirth = datetime.strptime(request.GET[tag], '%d.%m.%Y')
                         # filterdict[f"sample__projectid__patient__{tagwords[2]}"] = dateofbirth
                         dateofbirth = request.GET[tag].split(".")
-                        geneanalyses = geneanalyses.filter(reduce(operator.and_, (Q(sample__projectid__patient__dateofbirth__contains = dob) for dob in dateofbirth)))
+                        geneanalyses = geneanalyses.filter(reduce(operator.and_, (Q(sample__projectid__patient__dateofbirth__contains = int(dob)) for dob in dateofbirth)))
                     else:
                         filterdict[f"sample__projectid__patient__{tagwords[2]}__contains"] = request.GET[tag]
                 if tagwords[1] == 'patientdpt':
@@ -91,7 +91,6 @@ def projects_view_user(request):
                 if tagwords[1] == 'datapointtype':
                     filterdict[f"datapoints__specdpts__datapointtype_id"] = tagwords[2]
                     filterdict[f"datapoints__value__contains"] = request.GET[tag]
-        print(tag, request.GET[tag])
         geneanalyses = geneanalyses.filter(**filterdict)
         # filter
         paginatorobj = geneanalyses

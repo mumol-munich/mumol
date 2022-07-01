@@ -1,5 +1,4 @@
 {% load filters %}
-
 <!-- <div class="custom-control custom-switch mb-2">
     <div class="float-right">
         <input type="checkbox" class="custom-control-input" id="custom_project_patient_switch" checked>
@@ -12,18 +11,18 @@
             <th class="th-sm"></th>
             <th class="th-sm">pk</th>
             <!-- <th class="th-sm" data-name="id_projectid">Project Specific ID</th> -->
-            <th class="th-sm" data-name="id_projectid" data-toggle="tooltip" title="Patient ID specific to the current project">Patient ID</th>
-            <th class="th-sm" data-name="id_firstname">First Name</th>
-            <th class="th-sm" data-name="id_lastname">Last Name</th>
-            <th class="th-sm" data-name="id_dateofbirth">Date of Birth</th>
-            <th class="th-sm" data-name="id_otherid" data-toggle="tooltip" title="Patient ID from other projects">Other IDs</th>
-            {% for patientdpt in projectids.last.patientinfo.patientspec.patientdpts_patientspec.all|dpt_exclude_none %}
-                <th class="th-sm" data-name="id_patientdpt_{{patientdpt.pk}}">{{patientdpt.datapointtype.name}}</th>
+            <th class="th-sm" data-name="id_projectid" data-toggle="tooltip" title="Patient ID specific to the current project" data-tag="tag.projectid.projectid">Patient ID</th>
+            <th class="th-sm" data-name="id_firstname" data-tag="tag.patient.firstname">First Name</th>
+            <th class="th-sm" data-name="id_lastname" data-tag="tag.patient.lastname">Last Name</th>
+            <th class="th-sm" data-name="id_dateofbirth" data-tag="tag.patient.dateofbirth">Date of Birth</th>
+            <th class="th-sm" data-name="id_otherid" data-toggle="tooltip" title="Patient ID from other projects" data-tag="tag.projectid.otherids">Other IDs</th>
+            {% for patientdpt in last_projectid.patientinfo.patientspec.patientdpts_patientspec.all|dpt_exclude_none %}
+                <th class="th-sm" data-name="id_patientdpt_{{patientdpt.pk}}" data-tag="tag.patientdpt.{{patientdpt.pk}}">{{patientdpt.datapointtype.name}}</th>
             {% endfor %}
         </tr>
     </thead>
     <tbody>
-        {% for projectid in projectids %}
+        {% for projectid in page_obj %}
         <tr>
             <td></td>
             <td>{{projectid.pk}}</td>
@@ -61,6 +60,38 @@
     </tfoot> -->
 </table>
 
+<div style="font-size:1.5em;">
+    {% if page_obj.has_previous %}
+        <a class="btn-link" href="?page={{ page_obj.previous_page_number }}">« Previous page</a>
+    
+        {% if page_obj.number > 3 %}
+        <a class="btn-link" href="?page=1">1</a>
+        {% if page_obj.number > 4 %}
+            <span>...</span>
+        {% endif %}
+        {% endif %}
+    {% endif %}
+    
+    {% for num in page_obj.paginator.page_range %}
+        {% if page_obj.number == num %}
+        <a class="red-text btn-link" style="border: 1px solid grey; padding: 2px" href="?page={{ num }}">{{ num }}</a>
+        {% elif num > page_obj.number|add:'-3' and num < page_obj.number|add:'3' %}
+        <a class="btn-link" href="?page={{ num }}">{{ num }}</a>
+        {% endif %}
+    {% endfor %}
+    
+    {% if page_obj.has_next %}
+        {% if page_obj.number < page_obj.paginator.num_pages|add:'-3' %}
+        <span>...</span>
+        <a class="btn-link" href="?page={{ page_obj.paginator.num_pages }}">{{ page_obj.paginator.num_pages }}</a>
+        {% elif page_obj.number < page_obj.paginator.num_pages|add:'-2' %}
+        <a class="btn-link" href="?page={{ page_obj.paginator.num_pages }}">{{ page_obj.paginator.num_pages }}</a>
+        {% endif %}
+    
+        <a class="btn-link" href="?page={{ page_obj.next_page_number }}">Next Page »</a>
+    {% endif %}
+    </div>
+
 <!-- <style>
     #custom_project_patient_switch:checked+.custom-control-label::before {
     background-color: red;
@@ -72,6 +103,11 @@
 <script>
 $(document).ready(function(){
 
+    // filtering
+    $("#patients_table thead tr").clone(true).addClass("filters").appendTo("#patients_table thead");
+
+    var href = new URL(window.location.href);
+
     mytable = $("#patients_table").DataTable({
         // dom: 'Bfrtip',
         dom: "<'row'<'col-sm-12 col-md-5'B><'col-sm-12 col-md-2'l><'col-sm-12 col-md-5'f>>" + "<'row'<'col-sm-12'tr>>" + "<'row'<'col-sm-12 col-md-5'i><'col-sm-12 col-md-7'p>>",
@@ -79,13 +115,32 @@ $(document).ready(function(){
             { extend: 'selectNone', attr: { id: 'custom_selectnone_btn', class: 'btn btn-sm custom-button-color2' } },
             // { extend: 'csvHtml5', attr: { class: 'btn btn-sm custom-button-color2' } },
             { text: 'Delete', attr: { id: 'custom_patient_delete_btn', 'data-toggle': 'modal', 'data-target': '#remove_patients', class: 'btn btn-sm custom-button-color3'}},
+            { text: 'Apply filter', attr: { id: 'custom_submit_filter_btn', class: 'btn btn-sm custom-button-color6'},
+            action: function( e, dt, button, config ) {
+                var href = new URL(window.location.href);
+                $("tr.filters input").each(function(){
+                    if($(this).val() !== "") {
+                        href.searchParams.set($(this).attr("data-tag"), $(this).val());    
+                    } else {
+                        href.searchParams.delete($(this).attr("data-tag"));
+                    }
+                });
+                window.location = href.href;
+            }
+            },
+            { text: 'Clear filter', attr: { id: 'custom_submit_filter_btn', class: 'btn btn-sm custom-button-color5'},
+            action: function( e, dt, button, config ) {
+                window.location = "{% url 'patients_view_user' project_pk %}";
+            }
+            },
         ],
         pagingType: "full_numbers",
         lengthMenu: [
             [10, 25, 50, -1],
             [10, 25, 50, "All"]
         ],
-        columnDefs: [{
+        columnDefs: [
+            {
             orderable: false,
             className: 'select-checkbox select-checkbox-all',
             targets: 0
@@ -97,6 +152,32 @@ $(document).ready(function(){
         select: {
             style: 'multi',
             selector: 'td:first-child'
+        },
+        orderCellsTop: true,
+        fixedHeader: true,
+        initComplete: function () {
+            $("#patients_table").wrap("<div style='overflow:auto; width:100%;position:relative;'></div>");
+
+            var api = this.api();
+ 
+            // For each column
+            api
+                .columns()
+                .eq(0)
+                .each(function (colIdx) {
+                    // Set the header cell to contain the input element
+                    var cell = $('.filters th').eq(
+                        $(api.column(colIdx).header()).index()
+                    );
+                    var title = $(cell).text();
+                    var data_tag = $(cell).attr("data-tag");
+                    var tag_value = href.searchParams.get(data_tag);
+                    if (tag_value) {
+                        $(cell).html('<input type="text" placeholder="' + title + '" data-tag="' + data_tag + '" value="' + tag_value + '"/>');
+                    } else {
+                        $(cell).html('<input type="text" placeholder="' + title + '" data-tag="' + data_tag + '"/>');
+                    }
+                });
         },
 
     });

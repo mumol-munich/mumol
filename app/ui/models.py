@@ -191,6 +191,7 @@ class ProjectId(models.Model):  # user
     projectid = models.CharField(max_length=255) # unique id within project
     class Meta:
         unique_together = (('project', 'projectid',), ('project', 'patient', 'projectid',),)
+        ordering = ('-pk',)
     def __str__(self):
         return f"{self.projectid} - {self.project}"
     def get_name(self):
