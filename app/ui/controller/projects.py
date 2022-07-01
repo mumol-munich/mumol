@@ -1,3 +1,4 @@
+from warnings import filters
 from django.shortcuts import render
 from django.urls import reverse
 from django.contrib import messages
@@ -6,11 +7,18 @@ from django.contrib.auth.decorators import login_required
 from django.views.decorators.http import require_http_methods
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 
+import operator
+from django.db.models import Q
+from functools import reduce
+
 
 from ..models import ChipsetAnalysis, PatientDPTs, SampleDPTs, Project, User, GeneAnalysis, DatapointType
 from ..decorators import admin_required
 from ..forms import ProjectAddForm
 from ..functions import fn_convert_genespec_json, fn_auth_project_user
+
+import json
+from datetime import datetime
 
 
 # user
@@ -49,10 +57,48 @@ def projects_view_user(request):
     if not analysis_type or analysis_type != 'chipset':
         analysis_type = 'gene'
         geneanalyses = GeneAnalysis.objects.filter(sample__projectid__project_id__in = list(projects.values_list('id', flat = True)))
-        paginator = Paginator(geneanalyses, page_length)
+        # filter
+        filterdict = {}
+        for tag in request.GET:
+            if tag.startswith('tag.'):
+                tagwords = tag.split(".")
+                if tagwords[1] == 'project':
+                    filterdict["specification__project__name__contains"] = request.GET[tag]
+                if tagwords[1] == 'projectid':
+                    filterdict["sample__projectid__projectid__contains"] = request.GET[tag]
+                if tagwords[1] == 'patient':
+                    if tagwords[2] == "dateofbirth":
+                        # dateofbirth = datetime.strptime(request.GET[tag], '%d.%m.%Y')
+                        # filterdict[f"sample__projectid__patient__{tagwords[2]}"] = dateofbirth
+                        dateofbirth = request.GET[tag].split(".")
+                        geneanalyses = geneanalyses.filter(reduce(operator.and_, (Q(sample__projectid__patient__dateofbirth__contains = dob) for dob in dateofbirth)))
+                    else:
+                        filterdict[f"sample__projectid__patient__{tagwords[2]}__contains"] = request.GET[tag]
+                if tagwords[1] == 'patientdpt':
+                    filterdict["sample__projectid__patientinfo__patientspec__patientdpts_patientspec__id"] = tagwords[2]
+                    filterdict["sample__projectid__patientinfo__datapoints__value__contains"] = request.GET[tag]
+                if tagwords[1] == 'geneanalysis':
+                    dateofreceipt = request.GET[tag].split(" ")[0].split(".")
+                    geneanalyses = geneanalyses.filter(reduce(operator.and_, (Q(sample__dateofreceipt__contains = dor) for dor in dateofreceipt)))
+                if tagwords[1] == 'sampledpt':
+                    filterdict["sample__sampleinfo__samplespec__sampledpts_samplespec__id"] = tagwords[2]
+                    filterdict["sample__sampleinfo__datapoints__value__contains"] = request.GET[tag]
+                if tagwords[1] == 'specification':
+                    if tagwords[2] == 'status':
+                        filterdict[f"specification__{tagwords[2]}__contains"] = request.GET[tag]
+                    else:
+                        filterdict[f"specification__{tagwords[2]}__name__contains"] = request.GET[tag]
+                if tagwords[1] == 'datapointtype':
+                    filterdict[f"datapoints__specdpts__datapointtype_id"] = tagwords[2]
+                    filterdict[f"datapoints__value__contains"] = request.GET[tag]
+        print(tag, request.GET[tag])
+        geneanalyses = geneanalyses.filter(**filterdict)
+        # filter
+        paginatorobj = geneanalyses
     else:
         chipsetanalyses = ChipsetAnalysis.objects.filter(sample__projectid__project_id__in = list(projects.values_list('id', flat = True)))
-        paginator = Paginator(chipsetanalyses, page_length)
+        paginatorobj = chipsetanalyses
+    paginator = Paginator(paginatorobj, page_length)
     page_obj = paginator.get_page(page_num)
     datapointtypes = DatapointType.objects.values('pk', 'name')
     return render(request, 'ui_new/user/projects/projects.html', dict(projects = projects, analysis_type = analysis_type, datapointtypes = datapointtypes, project_link_deny = True, project_redirect = project_redirect, first_project_id = first_project_id, patientdpts = patientdpts, sampledpts = sampledpts, page_obj = page_obj, page_length = page_length))

@@ -17,27 +17,27 @@ Projects - {{title}}
         {% if analysis_type == 'gene' %}
         <thead>
             <tr>
-                <th class="th-sm">Project</th>
+                <th class="th-sm" data-tag="tag.project.name">Project</th>
                 
-                <th class="th-sm">Patient ID</th>
-                <th class="th-sm">First Name</th>
-                <th class="th-sm">Last Name</th>
-                <th class="th-sm">Date of Birth</th>
+                <th class="th-sm" data-tag="tag.projectid.projectid">Patient ID</th>
+                <th class="th-sm" data-tag="tag.patient.firstname">First Name</th>
+                <th class="th-sm" data-tag="tag.patient.lastname">Last Name</th>
+                <th class="th-sm" data-tag="tag.patient.dateofbirth">Date of Birth</th>
                 {% for patientdpt in patientdpts|dpt_exclude_none %}
-                    <th class="th-sm">Patient_{{patientdpt.datapointtype.name}}</th>
+                    <th class="th-sm" data-tag="tag.patientdpt.{{patientdpt.pk}}">Patient_{{patientdpt.datapointtype.name}}</th>
                 {% endfor %}
 
                 
-                <th class="th-sm">Sample</th>
+                <th class="th-sm" data-tag="tag.geneanalysis.sample">Sample</th>
                 {% for sampledpt in sampledpts|dpt_exclude_none %}
-                <th class="th-sm">Sample_{{sampledpt.datapointtype.name}}</th>
+                <th class="th-sm" data-tag="tag.sampledpt.{{sampledpt.pk}}">Sample_{{sampledpt.datapointtype.name}}</th>
                 {% endfor %}
                 
-                <th class="th-sm">Method</th>
-                <th class="th-sm">Gene</th>
-                <th class="th-sm">Result</th>
+                <th class="th-sm" data-tag="tag.specification.method">Method</th>
+                <th class="th-sm" data-tag="tag.specification.gene">Gene</th>
+                <th class="th-sm" data-tag="tag.specification.status">Result</th>
                 {% for datapointtype in datapointtypes|dpt_exclude_none2 %}
-                <th class="th-sm">{{datapointtype.name}}</th>
+                <th class="th-sm" data-tag="tag.datapointtype.{{datapointtype.pk}}">{{datapointtype.name}}</th>
                 {% endfor %}
             </tr>
         </thead>
@@ -185,6 +185,7 @@ $(document).ready(function(){
     // filtering
     $('#analysis_table thead tr').clone(true).addClass('filters').appendTo('#analysis_table thead');
 
+    var href = new URL(window.location.href);
 
     mytable = $("#analysis_table").DataTable({
         // dom: "<'row'<'col-sm-12 col-md-5'B><'col-sm-12 col-md-2'l><'col-sm-12 col-md-5'f>>" + "<'row'<'col-sm-12'tr>>",
@@ -200,6 +201,22 @@ $(document).ready(function(){
             { text: 'Chipset Analysis', attr: { id: 'custom_chipsetanalysis_btn', class: 'btn btn-sm custom-button-color1'},
             action: function ( e, dt, button, config ) {
                 window.location = "{% url 'projects_view_user' %}?project_redirect=false&type=chipset";
+            }
+            },
+            { text: 'Apply filter', attr: { id: 'custom_submit_filter_btn', class: 'btn btn-sm custom-button-color6'},
+            action: function( e, dt, button, config ) {
+                var href = new URL(window.location.href);
+                $("tr.filters input").each(function(){
+                    if($(this).val() !== "") {
+                        href.searchParams.set($(this).attr("data-tag"), $(this).val());    
+                    }
+                });
+                window.location = href.href;
+            }
+            },
+            { text: 'Clear filter', attr: { id: 'custom_submit_filter_btn', class: 'btn btn-sm custom-button-color5'},
+            action: function( e, dt, button, config ) {
+                window.location = "{% url 'projects_view_user' %}?project_redirect={{project_redirect}}&type={{analysis_type}}";
             }
             },
             { text: 'TSV Export', fieldBoundary: '', title: "{{analysis_type}}" + '_analysis', extend: 'csvHtml5', fieldSeparator: '\t', extension: '.tsv', attr: { class: 'btn btn-sm custom-button-color2' }},
@@ -238,38 +255,45 @@ $(document).ready(function(){
                                     $(api.column(colIdx).header()).index()
                                 );
                                 var title = $(cell).text();
-                                $(cell).html('<input type="text" placeholder="' + title + '" />');
+                                var data_tag = $(cell).attr("data-tag");
+                                // $(cell).html('<input type="text" placeholder="' + title + '" data-tag="' + data_tag + '"/>');
+                                var tag_value = href.searchParams.get(data_tag);
+                                if (tag_value) {
+                                    $(cell).html('<input type="text" placeholder="' + title + '" data-tag="' + data_tag + '" value="' + tag_value + '"/>');
+                                } else {
+                                    $(cell).html('<input type="text" placeholder="' + title + '" data-tag="' + data_tag + '"/>');
+                                }
             
-                                // On every keypress in this input
-                                $(
-                                    'input',
-                                    $('.filters th').eq($(api.column(colIdx).header()).index())
-                                )
-                                    .off('keyup change')
-                                    .on('keyup change', function (e) {
-                                        e.stopPropagation();
+                                // // On every keypress in this input
+                                // $(
+                                //     'input',
+                                //     $('.filters th').eq($(api.column(colIdx).header()).index())
+                                // )
+                                //     .off('keyup change')
+                                //     .on('keyup change', function (e) {
+                                //         e.stopPropagation();
             
-                                        // Get the search value
-                                        $(this).attr('title', $(this).val());
-                                        var regexr = '({search})'; //$(this).parents('th').find('select').val();
+                                //         // Get the search value
+                                //         $(this).attr('title', $(this).val());
+                                //         var regexr = '({search})'; //$(this).parents('th').find('select').val();
             
-                                        var cursorPosition = this.selectionStart;
-                                        // Search the column for that value
-                                        api
-                                            .column(colIdx)
-                                            .search(
-                                                this.value != ''
-                                                    ? regexr.replace('{search}', '(((' + this.value + ')))')
-                                                    : '',
-                                                this.value != '',
-                                                this.value == ''
-                                            )
-                                            .draw();
+                                //         var cursorPosition = this.selectionStart;
+                                //         // Search the column for that value
+                                //         api
+                                //             .column(colIdx)
+                                //             .search(
+                                //                 this.value != ''
+                                //                     ? regexr.replace('{search}', '(((' + this.value + ')))')
+                                //                     : '',
+                                //                 this.value != '',
+                                //                 this.value == ''
+                                //             )
+                                //             .draw();
             
-                                        $(this)
-                                            .focus()[0]
-                                            .setSelectionRange(cursorPosition, cursorPosition);
-                                    });
+                                //         $(this)
+                                //             .focus()[0]
+                                //             .setSelectionRange(cursorPosition, cursorPosition);
+                                //     });
                             });
                         // new
                     },
