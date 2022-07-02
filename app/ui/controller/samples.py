@@ -42,8 +42,27 @@ def samples_view_user(request, project_pk):
             if tag.startswith('tag.'):
                 tagwords = tag.split(".")
                 if tagwords[1] == 'sample':
-                    dateofreceipt = request.GET[tag].split(" ")[0].split(".")
-                    samples = samples.filter(reduce(operator.and_, (Q(dateofreceipt__contains = int(dor)) for dor in dateofreceipt)))
+                    # dateofreceipt = request.GET[tag].split(" ")[0].split(".")
+                    # samples = samples.filter(reduce(operator.and_, (Q(dateofreceipt__contains = int(dor)) for dor in dateofreceipt)))
+                    try:
+                        sampledate, samplevisit = request.GET[tag].split("(")
+                    except:
+                        sampledate = request.GET[tag]
+                        samplevisit = None
+                    samf = Q()
+                    if sampledate:
+                        sampledate = sampledate.split(".")
+                        samd = reduce(operator.and_, (Q(dateofreceipt__contains = int(dor.strip())) for dor in sampledate))
+                        if samd:
+                            samf.add(samd, Q.AND)
+                    if samplevisit:
+                        samplevisit = samplevisit.split(")")[0].strip()
+                        if samplevisit:
+                            samv = Q(visit = samplevisit)
+                            if samv:
+                                samf.add(samv, Q.AND)
+                    if samf:
+                        samples = samples.filter(samf)
                 if tagwords[1] == 'projectid':
                     filterdict["projectid__projectid__contains"] = request.GET[tag]
                 if tagwords[1] == 'patient':

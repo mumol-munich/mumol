@@ -78,8 +78,27 @@ def projects_view_user(request):
                     filterdict["sample__projectid__patientinfo__patientspec__patientdpts_patientspec__id"] = tagwords[2]
                     filterdict["sample__projectid__patientinfo__datapoints__value__contains"] = request.GET[tag]
                 if tagwords[1] == 'geneanalysis':
-                    dateofreceipt = request.GET[tag].split(" ")[0].split(".")
-                    geneanalyses = geneanalyses.filter(reduce(operator.and_, (Q(sample__dateofreceipt__contains = int(dor)) for dor in dateofreceipt)))
+                    # dateofreceipt = request.GET[tag].split(" ")[0].split(".")
+                    # geneanalyses = geneanalyses.filter(reduce(operator.and_, (Q(sample__dateofreceipt__contains = int(dor)) for dor in dateofreceipt)))
+                    try:
+                        sampledate, samplevisit = request.GET[tag].split("(")
+                    except:
+                        sampledate = request.GET[tag]
+                        samplevisit = None
+                    samf = Q()
+                    if sampledate:
+                        sampledate = sampledate.split(".")
+                        samd = reduce(operator.and_, (Q(sample__dateofreceipt__contains = int(dor.strip())) for dor in sampledate))
+                        if samd:
+                            samf.add(samd, Q.AND)
+                    if samplevisit:
+                        samplevisit = samplevisit.split(")")[0].strip()
+                        if samplevisit:
+                            samv = Q(sample__visit = samplevisit)
+                            if samv:
+                                samf.add(samv, Q.AND)
+                    if samf:
+                        geneanalyses = geneanalyses.filter(samf)
                 if tagwords[1] == 'sampledpt':
                     filterdict["sample__sampleinfo__samplespec__sampledpts_samplespec__id"] = tagwords[2]
                     filterdict["sample__sampleinfo__datapoints__value__contains"] = request.GET[tag]

@@ -5,6 +5,12 @@ from django.contrib import messages
 from django.http import HttpResponseRedirect
 from django.contrib.auth.decorators import login_required
 from django.views.decorators.http import require_http_methods
+from django.core.paginator import Paginator
+from django.db.models import Count
+
+import operator
+from django.db.models import Q
+from functools import reduce
 
 import json
 from numpy import NAN
@@ -19,6 +25,12 @@ from ..config import content
 # new
 @login_required
 def analysis_genes_view(request, project_pk):
+    page_num = request.GET.get('page', 1)
+    page_length = request.GET.get('length')
+    if not page_length:
+        page_length = 5
+    if not int(page_length) in [5, 10, 25, 50]:
+        page_length = 5
     # check user
     response = fn_auth_project_user(request.user, project_pk)
     if not response['ok']:
@@ -31,7 +43,55 @@ def analysis_genes_view(request, project_pk):
     project_pks = [p.pk for p in projects]
     # geneanalyses = GeneAnalysis.objects.filter(sample__projectid__project_id__in = project_pks)
     geneanalyses = GeneAnalysis.objects.filter(sample__projectid__project_id = project_pk)
-    return render(request, 'ui_new/user/analysis/gene_analysis_overview.html', dict(projects = projects, project_pk = project_pk, geneanalyses = geneanalyses, current_page = "patients", current_line = "geneanalyses"))
+    # filter
+    geneanalyses = geneanalyses.annotate(dcount = Count('datapoints'))
+    filterdict = {}
+    for tag in request.GET:
+        if tag.startswith('tag.'):
+            tagwords = tag.split(".")
+            if tagwords[1] == 'specification':
+                if tagwords[2] == 'name':
+                    specname = request.GET[tag].split(">")
+                    geneanalyses = geneanalyses.filter(reduce(operator.and_, (Q(specification__name__contains = spec.strip()) for spec in specname)))
+                if tagwords[2] == 'result':
+                    specname = request.GET[tag].split(">")
+                    geneanalyses = geneanalyses.filter(reduce(operator.and_, (Q(specification__name__contains = spec.strip()) for spec in specname)))
+                if tagwords[2] == 'count':
+                    filterdict["dcount"] = request.GET[tag]
+            if tagwords[1] == 'sample':
+                if tagwords[2] == 'projectid':
+                    filterdict["sample__projectid__projectid__contains"] = request.GET[tag]
+                if tagwords[2] == 'patient':
+                    patname = request.GET[tag].split(",")
+                    patf = reduce(operator.or_, (Q(sample__projectid__patient__firstname__contains = pat.strip()) for pat in patname))
+                    patl = reduce(operator.or_, (Q(sample__projectid__patient__lastname__contains = pat.strip()) for pat in patname))
+                    patf.add(patl, Q.OR)
+                    geneanalyses = geneanalyses.filter(patf)
+                if tagwords[2] == 'dateofreceipt':
+                    try:
+                        sampledate, samplevisit = request.GET[tag].split("(")
+                    except:
+                        sampledate = request.GET[tag]
+                        samplevisit = None
+                    samf = Q()
+                    if sampledate:
+                        sampledate = sampledate.split(".")
+                        samd = reduce(operator.and_, (Q(sample__dateofreceipt__contains = int(dor.strip())) for dor in sampledate))
+                        if samd:
+                            samf.add(samd, Q.AND)
+                    if samplevisit:
+                        samplevisit = samplevisit.split(")")[0].strip()
+                        if samplevisit:
+                            samv = Q(sample__visit = samplevisit)
+                            if samv:
+                                samf.add(samv, Q.AND)
+                    if samf:
+                        geneanalyses = geneanalyses.filter(samf)
+    geneanalyses = geneanalyses.filter(**filterdict)
+    # filter
+    paginator = Paginator(geneanalyses, page_length)
+    page_obj = paginator.get_page(page_num)
+    return render(request, 'ui_new/user/analysis/gene_analysis_overview.html', dict(projects = projects, project_pk = project_pk, page_obj = page_obj, current_page = "patients", current_line = "geneanalyses", page_length = page_length))
 
 @login_required
 @require_http_methods(['POST'])

@@ -7,16 +7,16 @@
         <tr>
             <th class="th-sm"></th>
             <th class="th-sm">pk</th>
-            <th class="th-sm">Specification</th>
-            <th class="th-sm">Result</th>
-            <th class="th-sm">Data Points</th>
-            <th class="th-sm">Project Specific ID</th>
-            <th class="th-sm">Patient</th>
-            <th class="th-sm">Sample</th>
+            <th class="th-sm" data-tag="tag.specification.name">Specification</th>
+            <th class="th-sm" data-tag="tag.specification.result">Result</th>
+            <th class="th-sm" data-tag="tag.specification.count">Data Points</th>
+            <th class="th-sm" data-tag="tag.sample.projectid">Project Specific ID</th>
+            <th class="th-sm" data-tag="tag.sample.patient">Patient</th>
+            <th class="th-sm" data-tag="tag.sample.dateofreceipt">Sample</th>
         </tr>
     </thead>
     <tbody>
-        {% for geneanalysis in geneanalyses %}
+        {% for geneanalysis in page_obj %}
         <tr>
             <td></td>
             <td>{{geneanalysis.pk}}</td>
@@ -31,21 +31,77 @@
     </tbody>
 </table>
 
+<div style="font-size:1.5em;">
+    {% if page_obj.has_previous %}
+        <a class="btn-link" href="?length={{page_length}}&page={{ page_obj.previous_page_number }}">« Previous page</a>
+    
+        {% if page_obj.number > 3 %}
+        <a class="btn-link" href="?length={{page_length}}&page=1">1</a>
+        {% if page_obj.number > 4 %}
+            <span>...</span>
+        {% endif %}
+        {% endif %}
+    {% endif %}
+    
+    {% for num in page_obj.paginator.page_range %}
+        {% if page_obj.number == num %}
+        <a class="red-text btn-link" style="border: 1px solid grey; padding: 2px" href="?length={{page_length}}&page={{ num }}">{{ num }}</a>
+        {% elif num > page_obj.number|add:'-3' and num < page_obj.number|add:'3' %}
+        <a class="btn-link" href="?length={{page_length}}&page={{ num }}">{{ num }}</a>
+        {% endif %}
+    {% endfor %}
+    
+    {% if page_obj.has_next %}
+        {% if page_obj.number < page_obj.paginator.num_pages|add:'-3' %}
+        <span>...</span>
+        <a class="btn-link" href="?length={{page_length}}&page={{ page_obj.paginator.num_pages }}">{{ page_obj.paginator.num_pages }}</a>
+        {% elif page_obj.number < page_obj.paginator.num_pages|add:'-2' %}
+        <a class="btn-link" href="?length={{page_length}}&page={{ page_obj.paginator.num_pages }}">{{ page_obj.paginator.num_pages }}</a>
+        {% endif %}
+    
+        <a class="btn-link" href="?length={{page_length}}&page={{ page_obj.next_page_number }}">Next Page »</a>
+    {% endif %}
+</div>
+
 <script type="text/javascript">
 
 $(document).ready(function(){
 
+    // filtering
+    $('#geneanalysis_table thead tr').clone(true).addClass('filters').appendTo('#geneanalysis_table thead');
+
+    var href = new URL(window.location.href);
+
     mytable = $("#geneanalysis_table").DataTable({
-        dom: "<'row'<'col-sm-12 col-md-5'B><'col-sm-12 col-md-2'l><'col-sm-12 col-md-5'f>>" + "<'row'<'col-sm-12'tr>>" + "<'row'<'col-sm-12 col-md-5'i><'col-sm-12 col-md-7'p>>",
+        dom: "<'row'<'col-sm-12 col-md-5'B><'col-sm-12 col-md-2'l><'col-sm-12 col-md-5'f>>" + "<'row'<'col-sm-12'tr>>",
         buttons: [
             { extend: 'selectNone', attr: { id: 'custom_selectnone_btn', class: 'btn btn-sm custom-button-color2' } },
             { text: 'Delete', attr: { id: 'custom_geneanalysis_delete_btn', 'data-toggle': 'modal', 'data-target': '#remove_geneanalysis', class: 'btn btn-sm custom-button-color3'}},
+            { text: 'Apply filter', attr: { id: 'custom_submit_filter_btn', class: 'btn btn-sm custom-button-color6'},
+            action: function( e, dt, button, config ) {
+                var href = new URL(window.location.href);
+                $("tr.filters input").each(function(){
+                    if($(this).val() !== "") {
+                        href.searchParams.set($(this).attr("data-tag"), $(this).val());    
+                    } else {
+                        href.searchParams.delete($(this).attr("data-tag"));
+                    }
+                });
+                window.location = href.href;
+            }
+            },
+            { text: 'Clear filter', attr: { id: 'custom_submit_filter_btn', class: 'btn btn-sm custom-button-color5'},
+            action: function( e, dt, button, config ) {
+                window.location = "{% url 'analysis_genes_view' project_pk %}?length={{page_length}}";
+            }
+            },
         ],
         pagingType: "full_numbers",
         lengthMenu: [
-            [10, 25, 50, -1],
-            [10, 25, 50, "All"]
+            [5, 10, 25, 50],
+            [5, 10, 25, 50]
         ],
+        pageLength: "{{ page_length }}",
         columnDefs: [{
             orderable: false,
             className: 'select-checkbox select-checkbox-all',
@@ -59,7 +115,32 @@ $(document).ready(function(){
             style: 'multi',
             selector: 'td:first-child'
         },
+        orderCellsTop: true,
+        fixedHeader: true,
+        initComplete: function () {
+            $("#geneanalysis_table").wrap("<div style='overflow:auto; width:100%;position:relative;'></div>");
 
+            var api = this.api();
+ 
+            // For each column
+            api
+                .columns()
+                .eq(0)
+                .each(function (colIdx) {
+                    // Set the header cell to contain the input element
+                    var cell = $('.filters th').eq(
+                        $(api.column(colIdx).header()).index()
+                    );
+                    var title = $(cell).text();
+                    var data_tag = $(cell).attr("data-tag");
+                    var tag_value = href.searchParams.get(data_tag);
+                    if (tag_value) {
+                        $(cell).html('<input type="text" placeholder="' + title + '" data-tag="' + data_tag + '" value="' + tag_value + '"/>');
+                    } else {
+                        $(cell).html('<input type="text" placeholder="' + title + '" data-tag="' + data_tag + '"/>');
+                    }
+                });
+        },
     });
 
     // delete button
@@ -87,6 +168,13 @@ $(document).ready(function(){
             geneanalysis_pks = geneanalysis_pks.length;
         }
         $('#custom_selected_geneanalysis_count_span').html(geneanalysis_pks);
+    });
+
+    $("select[name='geneanalysis_table_length']").on("change", function(){
+        // window.location = window.location.href + "&length=" + $(this).val();
+        var href = new URL(window.location.href);
+        href.searchParams.set('length', $(this).val());
+        window.location = href.href;
     });
 
     
