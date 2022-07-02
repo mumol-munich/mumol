@@ -1,3 +1,4 @@
+from stat import FILE_ATTRIBUTE_DIRECTORY
 from django.shortcuts import render
 from django.urls import reverse
 from django.http.response import HttpResponse
@@ -6,7 +7,7 @@ from django.http import HttpResponseRedirect
 from django.contrib.auth.decorators import login_required
 from django.views.decorators.http import require_http_methods
 from django.core.paginator import Paginator
-from django.db.models import Count
+from django.db.models import Count, Sum
 
 import operator
 from django.db.models import Q
@@ -44,7 +45,7 @@ def analysis_genes_view(request, project_pk):
     # geneanalyses = GeneAnalysis.objects.filter(sample__projectid__project_id__in = project_pks)
     geneanalyses = GeneAnalysis.objects.filter(sample__projectid__project_id = project_pk)
     # filter
-    geneanalyses = geneanalyses.annotate(dcount = Count('datapoints'))
+    geneanalyses = geneanalyses.annotate(dcount = Count('datapoints', distinct=True))
     filterdict = {}
     for tag in request.GET:
         if tag.startswith('tag.'):
@@ -408,6 +409,12 @@ def analysis_genes_add_remove(request, sample_pk):
 
 @login_required
 def analysis_chipsets_view(request, project_pk):
+    page_num = request.GET.get('page', 1)
+    page_length = request.GET.get('length')
+    if not page_length:
+        page_length = 5
+    if not int(page_length) in [5, 10, 25, 50]:
+        page_length = 5
     # check user
     response = fn_auth_project_user(request.user, project_pk)
     if not response['ok']:
@@ -420,7 +427,104 @@ def analysis_chipsets_view(request, project_pk):
     project_pks = [p.pk for p in projects]
     # chipsetanalyses = ChipsetAnalysis.objects.filter(sample__projectid__project_id__in = project_pks)
     chipsetanalyses = ChipsetAnalysis.objects.filter(sample__projectid__project_id = project_pk)
-    return render(request, 'ui_new/user/analysis/chipset_analysis_overview.html', dict(projects = projects, project_pk = project_pk, chipsetanalyses = chipsetanalyses, current_page = "patients", current_line = "chipsetanalyses"))
+    # filter
+    chipsetanalyses = chipsetanalyses.annotate(dcount = Count('chipsetspec__confdpts_chipsetspec', distinct=True)).annotate(gcount = Count('chipsetspec__genes', distinct=True))
+    filterdict = {}
+    for tag in request.GET:
+        if tag.startswith('tag.'):
+            tagwords = tag.split(".")
+            if tagwords[1] == 'specification':
+                if tagwords[2] == 'name':
+                    try:
+                        chipname, chipinfo = request.GET[tag].split("(")
+                        chipinfo = chipinfo.strip().split(",")
+                    except:
+                        chipname = request.GET[tag].strip()
+                        chipinfo = None
+                    chipf = Q()
+                    if chipname:
+                        chipn = Q(chipsetspec__name__contains = chipname)
+                        if chipn:
+                            chipf.add(chipn, Q.AND)
+                    if chipinfo:
+                        chipinfo = [c.replace('version:', '').replace('manufacturer:', '').split(")")[0].strip() for c in chipinfo]
+                        print(chipinfo)
+                        chipv = reduce(operator.or_, (Q(chipsetspec__version = v) for v in chipinfo))
+                        chipf2 = Q()
+                        if chipv:
+                            chipf2.add(chipv, Q.OR)
+                        chipm = reduce(operator.or_, (Q(chipsetspec__manufacturer__contains = m) for m in chipinfo))
+                        if chipm:
+                            chipf2.add(chipm, Q.OR)
+                        if chipf2:
+                            chipf.add(chipf2, Q.AND)
+                    if chipf:
+                        chipsetanalyses = chipsetanalyses.filter(chipf)
+                if tagwords[2] == 'result':
+                    try:
+                        chipname, chipinfo = request.GET[tag].split("(")
+                        chipinfo = chipinfo.strip().split(",")
+                    except:
+                        chipname = request.GET[tag].strip()
+                        chipinfo = None
+                    chipf = Q()
+                    if chipname:
+                        chipn = Q(chipsetspec__name__contains = chipname)
+                        if chipn:
+                            chipf.add(chipn, Q.AND)
+                    if chipinfo:
+                        chipinfo = [c.replace('version:', '').replace('manufacturer:', '').split(")")[0].strip() for c in chipinfo]
+                        print(chipinfo)
+                        chipv = reduce(operator.or_, (Q(chipsetspec__version = v) for v in chipinfo))
+                        chipf2 = Q()
+                        if chipv:
+                            chipf2.add(chipv, Q.OR)
+                        chipm = reduce(operator.or_, (Q(chipsetspec__manufacturer__contains = m) for m in chipinfo))
+                        if chipm:
+                            chipf2.add(chipm, Q.OR)
+                        if chipf2:
+                            chipf.add(chipf2, Q.AND)
+                    if chipf:
+                        chipsetanalyses = chipsetanalyses.filter(chipf)
+            if tagwords[1] == 'count':
+                if tagwords[2] == 'genes':
+                    filterdict["gcount"] = request.GET[tag]
+                if tagwords[2] == 'datapoints':
+                    filterdict["dcount"] = request.GET[tag]
+            if tagwords[1] == 'sample':
+                if tagwords[2] == 'projectid':
+                    filterdict["sample__projectid__projectid__contains"] = request.GET[tag]
+                if tagwords[2] == 'patient':
+                    patname = request.GET[tag].split(",")
+                    patf = reduce(operator.or_, (Q(sample__projectid__patient__firstname__contains = pat.strip()) for pat in patname))
+                    patl = reduce(operator.or_, (Q(sample__projectid__patient__lastname__contains = pat.strip()) for pat in patname))
+                    patf.add(patl, Q.OR)
+                    chipsetanalyses = chipsetanalyses.filter(patf)
+                if tagwords[2] == 'dateofreceipt':
+                    try:
+                        sampledate, samplevisit = request.GET[tag].split("(")
+                    except:
+                        sampledate = request.GET[tag]
+                        samplevisit = None
+                    samf = Q()
+                    if sampledate:
+                        sampledate = sampledate.split(".")
+                        samd = reduce(operator.and_, (Q(sample__dateofreceipt__contains = int(dor.strip())) for dor in sampledate))
+                        if samd:
+                            samf.add(samd, Q.AND)
+                    if samplevisit:
+                        samplevisit = samplevisit.split(")")[0].strip()
+                        if samplevisit:
+                            samv = Q(sample__visit = samplevisit)
+                            if samv:
+                                samf.add(samv, Q.AND)
+                    if samf:
+                        chipsetanalyses = chipsetanalyses.filter(samf)
+    chipsetanalyses = chipsetanalyses.filter(**filterdict)
+    # filter
+    paginator = Paginator(chipsetanalyses, page_length)
+    page_obj = paginator.get_page(page_num)
+    return render(request, 'ui_new/user/analysis/chipset_analysis_overview.html', dict(projects = projects, project_pk = project_pk, page_obj = page_obj, current_page = "patients", current_line = "chipsetanalyses", page_length = page_length))
 
 @login_required
 @require_http_methods(['POST'])

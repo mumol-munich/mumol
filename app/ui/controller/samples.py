@@ -35,7 +35,7 @@ def samples_view_user(request, project_pk):
             messages.error(request, response['message'])
             return response['return_page']
         samples = Sample.objects.prefetch_related('projectid').filter(projectid__project_id = project_pk)
-        samples = samples.annotate(gcount = Count('geneanalysis_sample'), ccount = Count('chipsetanalysis_sample'))
+        samples = samples.annotate(gcount = Count('geneanalysis_sample', distinct=True), ccount = Count('chipsetanalysis_sample', distinct=True))
         # filter
         filterdict = {}
         for tag in request.GET:
