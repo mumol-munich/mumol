@@ -115,6 +115,85 @@ def projects_view_user(request):
         paginatorobj = geneanalyses
     else:
         chipsetanalyses = ChipsetAnalysis.objects.filter(sample__projectid__project_id__in = list(projects.values_list('id', flat = True)))
+        # filter
+        filterdict = {}
+        for tag in request.GET:
+            if tag.startswith('tag.'):
+                tagwords = tag.split(".")
+                if tagwords[1] == 'project':
+                    filterdict["chipsetspec__project__name__contains"] = request.GET[tag]
+                if tagwords[1] == 'projectid':
+                    filterdict["sample__projectid__projectid__contains"] = request.GET[tag]
+                if tagwords[1] == 'patient':
+                    if tagwords[2] == "dateofbirth":
+                        dateofbirth = request.GET[tag].split(".")
+                        chipsetanalyses = chipsetanalyses.filter(reduce(operator.and_, (Q(sample__projectid__patient__dateofbirth__contains = int(dob)) for dob in dateofbirth)))
+                    else:
+                        filterdict[f"sample__projectid__patient__{tagwords[2]}__contains"] = request.GET[tag]
+                if tagwords[1] == 'patientdpt':
+                    filterdict["sample__projectid__patientinfo__patientspec__patientdpts_patientspec__id"] = tagwords[2]
+                    filterdict["sample__projectid__patientinfo__datapoints__value__contains"] = request.GET[tag]
+                if tagwords[1] == 'chipsetanalysis':
+                    try:
+                        sampledate, samplevisit = request.GET[tag].split("(")
+                    except:
+                        sampledate = request.GET[tag]
+                        samplevisit = None
+                    samf = Q()
+                    if sampledate:
+                        sampledate = sampledate.split(".")
+                        samd = reduce(operator.and_, (Q(sample__dateofreceipt__contains = int(dor.strip())) for dor in sampledate))
+                        if samd:
+                            samf.add(samd, Q.AND)
+                    if samplevisit:
+                        samplevisit = samplevisit.split(")")[0].strip()
+                        if samplevisit:
+                            samv = Q(sample__visit = samplevisit)
+                            if samv:
+                                samf.add(samv, Q.AND)
+                    if samf:
+                        chipsetanalyses = chipsetanalyses.filter(samf)
+                if tagwords[1] == 'sampledpt':
+                    filterdict["sample__sampleinfo__samplespec__sampledpts_samplespec__id"] = tagwords[2]
+                    filterdict["sample__sampleinfo__datapoints__value__contains"] = request.GET[tag]
+                if tagwords[1] == 'specification':
+                    if tagwords[2] == 'name':
+                        try:
+                            chipname, chipinfo = request.GET[tag].split("(")
+                            chipinfo = chipinfo.strip().split(",")
+                        except:
+                            chipname = request.GET[tag].strip()
+                            chipinfo = None
+                        chipf = Q()
+                        if chipname:
+                            chipn = Q(chipsetspec__name__contains = chipname)
+                            if chipn:
+                                chipf.add(chipn, Q.AND)
+                        if chipinfo:
+                            chipinfo = [c.replace('version:', '').replace('manufacturer:', '').split(")")[0].strip() for c in chipinfo]
+                            print(chipinfo)
+                            chipv = reduce(operator.or_, (Q(chipsetspec__version = v) for v in chipinfo))
+                            chipf2 = Q()
+                            if chipv:
+                                chipf2.add(chipv, Q.OR)
+                            chipm = reduce(operator.or_, (Q(chipsetspec__manufacturer__contains = m) for m in chipinfo))
+                            if chipm:
+                                chipf2.add(chipm, Q.OR)
+                            if chipf2:
+                                chipf.add(chipf2, Q.AND)
+                        if chipf:
+                            chipsetanalyses = chipsetanalyses.filter(chipf)
+                    if tagwords[2] == 'genes':
+                        # filterdict["chipsetspec__genes__name__contains"] = request.GET[tag]
+                        messages.error(request, 'This functionality is not available for Genes')
+                        return HttpResponseRedirect(reverse('projects_view_user') + '?project_redirect=false&type=chipset&length=' + page_length)
+                if tagwords[1] == 'datapointtype':
+                    # filterdict[f"datapoints__confdpts__datapointtype_id"] = tagwords[2]
+                    # filterdict[f"datapoints__value__contains"] = request.GET[tag]
+                    messages.error(request, 'This functionality is not available for Chipset datapoints')
+                    return HttpResponseRedirect(reverse('projects_view_user') + '?project_redirect=false&type=chipset&length=' + page_length)
+        chipsetanalyses = chipsetanalyses.filter(**filterdict)
+        # filter
         paginatorobj = chipsetanalyses
     paginator = Paginator(paginatorobj, page_length)
     page_obj = paginator.get_page(page_num)

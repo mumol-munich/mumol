@@ -79,25 +79,25 @@ Projects - {{title}}
         {% else %}
         <thead>
             <tr>
-                <th class="th-sm">Project</th>
+                <th class="th-sm" data-tag="tag.project.name">Project</th>
 
-                <th class="th-sm">Patient ID</th>
-                <th class="th-sm">First Name</th>
-                <th class="th-sm">Last Name</th>
-                <th class="th-sm">Date of Birth</th>
+                <th class="th-sm" data-tag="tag.projectid.projectid">Patient ID</th>
+                <th class="th-sm" data-tag="tag.patient.firstname">First Name</th>
+                <th class="th-sm" data-tag="tag.patient.lastname">Last Name</th>
+                <th class="th-sm" data-tag="tag.patient.dateofbirth">Date of Birth</th>
                 {% for patientdpt in patientdpts|dpt_exclude_none %}
-                    <th class="th-sm">Patient_{{patientdpt.datapointtype.name}}</th>
+                    <th class="th-sm" data-tag="tag.patientdpt.{{patientdpt.pk}}">Patient_{{patientdpt.datapointtype.name}}</th>
                 {% endfor %}
 
-                <th class="th-sm">Sample</th>
+                <th class="th-sm" data-tag="tag.chipsetanalysis.sample">Sample</th>
                 {% for sampledpt in sampledpts|dpt_exclude_none %}
-                <th class="th-sm">Sample_{{sampledpt.datapointtype.name}}</th>
+                <th class="th-sm" data-tag="tag.sampledpt.{{sampledpt.pk}}">Sample_{{sampledpt.datapointtype.name}}</th>
                 {% endfor %}
 
-                <th class="th-sm">Chipset</th>
-                <th class="th-sm">Genes</th>
+                <th class="th-sm" data-tag="tag.specification.name">Chipset</th>
+                <th class="th-sm" data-tag="tag.specification.genes">Genes</th>
                 {% for datapointtype in datapointtypes|dpt_exclude_none2 %}
-                <th class="th-sm">{{datapointtype.name}}</th>
+                <th class="th-sm" data-tag="tag.datapointtype.{{datapointtype.pk}}">{{datapointtype.name}}</th>
                 {% endfor %}
             </tr>
         </thead>
