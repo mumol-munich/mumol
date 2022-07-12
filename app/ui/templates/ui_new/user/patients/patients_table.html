@@ -144,7 +144,7 @@ $(document).ready(function(){
                     var data_tag = $(cell).attr("data-tag");
                     var tag_value = href.searchParams.get(data_tag);
                     if (tag_value) {
-                        $(cell).html('<input type="text" placeholder="' + title + '" data-tag="' + data_tag + '" value="' + tag_value + '"/>');
+                        $(cell).html('<input type="text" placeholder="' + title + '" data-tag="' + data_tag + '" value="' + tag_value + '" style="background-color:yellow;"/>');
                     } else {
                         $(cell).html('<input type="text" placeholder="' + title + '" data-tag="' + data_tag + '"/>');
                     }
