@@ -179,6 +179,9 @@ def samples_overview_add_remove(request, project_pk):
                         ivalue = request.POST.getlist(key)
                         ivalue = ','.join(ivalue)
                     if patientdpts.mandatory and not ivalue:
+                        if patient_new:
+                            projectid.delete()
+                            patient.delete()
                         messages.error(request, 'Mandatory field is not filled')
                         return return_page
                     if ivalue:
@@ -188,6 +191,9 @@ def samples_overview_add_remove(request, project_pk):
                             # patientinfo.delete()
                             # PatientDatapoint.objects.filter(pk__in = patdatapoint_pks).delete()
                             [p.delete() for p in PatientDatapoint.objects.filter(pk__in = patdatapoint_pks)]
+                            if patient_new:
+                                projectid.delete()
+                                patient.delete()
                             messages.error(request, response['message'])
                             return return_page
                     datapoint = PatientDatapoint(patientdpts = patientdpts, value = ivalue)

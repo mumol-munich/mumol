@@ -148,6 +148,9 @@ def patients_add_remove(request, project_pk):
                         ivalue = request.POST.getlist(key)
                         ivalue = ','.join(ivalue)
                     if patientdpts.mandatory and not ivalue:
+                        if patient_new:
+                            projectid.delete()
+                            patient.delete()
                         messages.error(request, 'Mandatory field is not filled')
                         return return_page
                     if ivalue:
