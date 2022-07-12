@@ -240,6 +240,11 @@ def samples_overview_add_remove(request, project_pk):
                         ivalue = request.POST.getlist(key)
                         ivalue = ','.join(ivalue)
                     if sampledpts.mandatory and not ivalue:
+                        if sample_new:
+                            sample.delete()
+                        if patient_new:
+                            patientinfo.delete()
+                            patient.delete()
                         messages.error(request, 'Mandatory field is not filled')
                         return return_page
                     if ivalue:
@@ -249,7 +254,6 @@ def samples_overview_add_remove(request, project_pk):
                             # SampleDatapoint.objects.filter(pk__in = samdatapoint_pks).delete()
                             [s.delete() for s in SampleDatapoint.objects.filter(pk__in = samdatapoint_pks)]
                             if sample_new:
-                                sampleinfo.delete()
                                 sample.delete()
                             if patient_new:
                                 patientinfo.delete()
@@ -262,10 +266,9 @@ def samples_overview_add_remove(request, project_pk):
                     sampleinfo.datapoints.add(datapoint)
             except Exception as e:
                 if sample_new:
-                    sampleinfo.delete()
                     sample.delete()
                 if patient_new:
-                    patientinfo.delete()
+                    projectid.delete()
                     patient.delete()
                 messages.error(request, e)
                 messages.error(request, 'Error in adding sample inf values')
@@ -346,6 +349,8 @@ def samples_add_remove(request):
                         ivalue = request.POST.getlist(key)
                         ivalue = ','.join(ivalue)
                     if sampledpts.mandatory and not ivalue:
+                        if sample_new:
+                            sample.delete()
                         messages.error(request, 'Mandatory field is not filled')
                         return return_page
                     if ivalue:
@@ -355,7 +360,6 @@ def samples_add_remove(request):
                             # SampleDatapoint.objects.filter(pk__in = datapoint_pks).delete()
                             [s.delete() for s in SampleDatapoint.objects.filter(pk__in = datapoint_pks)]
                             if sample_new:
-                                sampleinfo.delete()
                                 sample.delete()
                             messages.error(request, response['message'])
                             return return_page
@@ -365,7 +369,6 @@ def samples_add_remove(request):
                     sampleinfo.datapoints.add(datapoint)
             except Exception as e:
                 if sample_new:
-                    sampleinfo.delete()
                     sample.delete()
                 messages.error(request, e)
                 messages.error(request, 'Error in adding sample inf values')

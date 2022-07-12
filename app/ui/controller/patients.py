@@ -171,7 +171,7 @@ def patients_add_remove(request, project_pk):
                     patientinfo.datapoints.add(datapoint)
             except Exception as e:
                 if patient_new:
-                    patientinfo.delete()
+                    projectid.delete()
                     patient.delete()
                 messages.error(request, e)
                 messages.error(request, 'Error in adding patient info values')
