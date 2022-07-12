@@ -7,7 +7,7 @@ if sys.argv[1] == 'runserver':
 # controller imports
 from .controller.index import index, view_404
 from .controller.registration import registration
-from .controller.projects import projects_view_user, project_view_user, projects_view, projects_add_remove, project_view, project_users_add_remove
+from .controller.projects import projects_view_user, project_view_user, projects_view, projects_add_remove, project_view, project_users_add_remove, queries_gene_user
 from .controller.attributes import admin_attributes_method_add_remove, admin_attributes_gene_add_remove, admin_datapoints_types_add_remove, admin_attributes_methods, admin_attributes_method, admin_attributes_genes, admin_attributes_gene, admin_attributes_genespec_add_remove, admin_attributes_chipsetspec_add_remove, admin_attributes_specifications, admin_attributes_gene_specification, admin_attributes_specdpt_add_remove, admin_attributes_chipset_specification, admin_attributes_confdpt_add_remove, admin_attributes_datapointtypes, admin_attributes_patientspec_add_remove, admin_attributes_samplespec_add_remove, admin_attributes_specdpt_sort, admin_attributes_confdpt_sort
 from .controller.patients import patients_view_user, patients_add_remove, patient_view_user
 from .controller.samples import samples_view_user, samples_overview_add_remove, sample_view_user, samples_add_remove
