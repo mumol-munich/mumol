@@ -1,0 +1,31 @@
+<div style="font-size:1.5em;">
+    {% if page_obj.has_previous %}
+        <button class="btn-link" style="border:none;" onclick="custom_pagination({{ page_obj.previous_page_number }});">« Previous page</button>
+    
+        {% if page_obj.number > 3 %}
+        <button class="btn-link" style="border:none;" onclick="custom_pagination(1);">1</button>
+        {% if page_obj.number > 4 %}
+            <span>...</span>
+        {% endif %}
+        {% endif %}
+    {% endif %}
+    
+    {% for num in page_obj.paginator.page_range %}
+        {% if page_obj.number == num %}
+        <button class="red-text btn-link" style="border: 1px solid grey; padding: 2px" onclick="custom_pagination({{ num }});">{{ num }}</button>
+        {% elif num > page_obj.number|add:'-3' and num < page_obj.number|add:'3' %}
+        <button class="btn-link" style="border:none;" onclick="custom_pagination({{ num }});">{{ num }}</button>
+        {% endif %}
+    {% endfor %}
+    
+    {% if page_obj.has_next %}
+        {% if page_obj.number < page_obj.paginator.num_pages|add:'-3' %}
+        <span>...</span>
+        <button class="btn-link" style="border:none;" onclick="custom_pagination({{ page_obj.paginator.num_pages }});">{{ page_obj.paginator.num_pages }}</button>
+        {% elif page_obj.number < page_obj.paginator.num_pages|add:'-2' %}
+        <button class="btn-link" style="border:none;" onclick="custom_pagination({{ page_obj.paginator.num_pages }});">{{ page_obj.paginator.num_pages }}</button>
+        {% endif %}
+    
+        <button class="btn-link" style="border:none;" onclick="custom_pagination({{ page_obj.next_page_number }});">Next Page »</button>
+    {% endif %}
+</div>

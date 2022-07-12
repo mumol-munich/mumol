@@ -1427,3 +1427,9 @@ function SampleSpecificationSetStorage(project_pk: string) {
 
 
 }
+
+function custom_pagination(page:string) {
+    var href = new URL(window.location.href);
+    href.searchParams.set("page", page);
+    window.location.href = href.href;
+}

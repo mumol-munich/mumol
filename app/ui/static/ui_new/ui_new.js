@@ -1157,3 +1157,10 @@ function SampleSpecificationSetStorage(project_pk) {
     }
     localStorage.setItem(itemkey, JSON.stringify(myjson));
 }
+
+function custom_pagination(page) {
+    console.log(page);
+    var href = new URL(window.location.href);
+    href.searchParams.set("page", page);
+    window.location.href = href.href;
+}
