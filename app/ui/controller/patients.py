@@ -157,6 +157,9 @@ def patients_add_remove(request, project_pk):
                             # patientinfo.delete()
                             # PatientDatapoint.objects.filter(pk__in = datapoint_pks).delete()
                             [p.delete() for p in PatientDatapoint.objects.filter(pk__in = datapoint_pks)]
+                            if patient_new:
+                                projectid.delete()
+                                patient.delete()
                             messages.error(request, response['message'])
                             return return_page
                     datapoint = PatientDatapoint(patientdpts = patientdpts, value = ivalue)
