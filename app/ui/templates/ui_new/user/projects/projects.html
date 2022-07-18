@@ -192,6 +192,11 @@ $(document).ready(function(){
             }
             },
             { text: 'TSV Export', fieldBoundary: '', title: "{{analysis_type}}" + '_analysis', extend: 'csvHtml5', fieldSeparator: '\t', extension: '.tsv', attr: { class: 'btn btn-sm custom-button-color2' }},
+            { text: 'Export All', attr: { class: 'btn btn-sm custom-button-color2' },
+            action: function (e, dt, button, config) {
+                window.location = "{% url 'queries_gene_user' %}"
+            }
+            },
         ],
         pagingType: "full_numbers",
         lengthMenu: [

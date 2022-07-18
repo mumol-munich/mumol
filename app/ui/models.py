@@ -41,7 +41,7 @@ class Gene(models.Model):
     def __str__(self):
         return self.name
     class Meta:
-        ordering = ['name']
+        ordering = ('name', '-pk',)
 
 
 
@@ -133,7 +133,7 @@ class SpecDPTs(models.Model):  # admin
         return htmlstr
     class Meta:
         unique_together = ('specification', 'datapointtype',)
-        ordering = ('priority',)
+        ordering = ('priority', '-pk',)
 
 class ChipsetSpecification(models.Model):
     name = models.CharField(max_length=255)
@@ -167,7 +167,7 @@ class ConfDPTs(models.Model):  # admin
         return htmlstr
     class Meta:
         unique_together = ('chipsetspec', 'datapointtype',)
-        ordering = ('priority',)
+        ordering = ('priority', '-pk',)
 
 # user
 class Patient(models.Model):  # user
@@ -224,7 +224,7 @@ class Datapoint(models.Model): # user
     def get_datapointtype_id(self):
         return self.specdpts.datapointtype_id
     class Meta:
-        ordering = ('specdpts__priority',)
+        ordering = ('specdpts__priority', '-pk',)
 
 class DatapointsRow(models.Model): # user
     datapoints = models.ManyToManyField(Datapoint, related_name='datapointsrow_datapoint')
@@ -244,7 +244,7 @@ class ChipsetDatapoint(models.Model):
     def get_datapointtype_id(self):
         return self.confdpts.datapointtype_id
     class Meta:
-        ordering = ('confdpts__priority',)
+        ordering = ('confdpts__priority', '-pk',)
     
 class GeneAnalysis(models.Model): # user
     sample = models.ForeignKey(
@@ -339,7 +339,7 @@ class PatientDPTs(models.Model):  # admin
         return htmlstr
     class Meta:
         unique_together = ('patientspec', 'datapointtype',)
-        ordering = ('priority',)
+        ordering = ('priority', '-pk',)
 
 class SampleDPTs(models.Model):  # admin
     samplespec = models.ForeignKey(
@@ -359,7 +359,7 @@ class SampleDPTs(models.Model):  # admin
         return htmlstr
     class Meta:
         unique_together = ('samplespec', 'datapointtype',)
-        ordering = ('priority',)
+        ordering = ('priority', '-pk',)
 
 
 class PatientDatapoint(models.Model): # user
@@ -370,7 +370,7 @@ class PatientDatapoint(models.Model): # user
     def get_datapointtype_id(self):
         return self.patientdpts.datapointtype_id
     class Meta:
-        ordering = ('patientdpts__priority', )
+        ordering = ('patientdpts__priority', '-pk',)
 
 class SampleDatapoint(models.Model): # user
     sampledpts = models.ForeignKey(
@@ -380,7 +380,7 @@ class SampleDatapoint(models.Model): # user
     def get_datapointtype_id(self):
         return self.sampledpts.datapointtype_id
     class Meta:
-        ordering = ('sampledpts__priority', )
+        ordering = ('sampledpts__priority', '-pk',)
 
 class PatientInfo(models.Model): # user
     projectid = models.OneToOneField(
