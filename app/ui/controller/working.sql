@@ -55,7 +55,7 @@ from (
 limit 10;
 
 -- 
-select username, id,
-case id when 1 then 'a' else 'b'
-end test
-from auth_user where test = 'a';
+-- select username, id,
+-- case id when 1 then 'a' else 'b'
+-- end test
+-- from auth_user where test = 'a';

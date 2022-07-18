@@ -239,61 +239,18 @@ def queries_gene_user(request):
         projects = Project.objects.order_by('-pk')
     else:
         projects = request.user.project_user.order_by('-pk')
-    ####
-    # new
-    # dat1 = DatapointsRow.objects.filter(
-    #     geneanalysis_datapointsrows__sample__projectid__project__in = projects
-    # ).values_list(
-    #     'pk',
-    #     'geneanalysis_datapointsrows__sample__projectid__project__name',
-    #     'geneanalysis_datapointsrows__sample__projectid__projectid',
-    #     'geneanalysis_datapointsrows__sample__projectid__patient__firstname',
-    #     'geneanalysis_datapointsrows__sample__projectid__patient__lastname',
-    #     'geneanalysis_datapointsrows__sample__projectid__patient__dateofbirth',
-    #     'geneanalysis_datapointsrows__sample__dateofreceipt',
-    #     'geneanalysis_datapointsrows__sample__visit',
-    #     'geneanalysis_datapointsrows__specification__method__name',
-    #     'geneanalysis_datapointsrows__specification__gene__name',
-    #     'geneanalysis_datapointsrows__specification__status',
-    # ).order_by('pk')
-    # dat2 = DatapointsRow.objects.filter(
-    #     geneanalysis_datapointsrows__sample__projectid__project__in = projects
-    # ).values_list(
-    #     'pk'
-    # ).annotate(
-    #     pdpt = GroupConcat('geneanalysis_datapointsrows__sample__projectid__patientinfo__datapoints__patientdpts__datapointtype__name'),
-    #     pdp = GroupConcat('geneanalysis_datapointsrows__sample__projectid__patientinfo__datapoints__value', output_field=CharField()),
-    # ).order_by('pk')
-    # dat3 = DatapointsRow.objects.filter(
-    #     geneanalysis_datapointsrows__sample__projectid__project__in = projects
-    # ).values_list(
-    #     'pk'
-    # ).annotate(
-    #     sdpt = GroupConcat('geneanalysis_datapointsrows__sample__sampleinfo__datapoints__sampledpts__datapointtype__name'),
-    #     sdp = GroupConcat('geneanalysis_datapointsrows__sample__sampleinfo__datapoints__value', output_field=CharField()),
-    # ).order_by('pk')
-    # dat4 = DatapointsRow.objects.filter(
-    #     geneanalysis_datapointsrows__sample__projectid__project__in = projects
-    # ).values_list(
-    #     'pk'
-    # ).annotate(
-    #     dpt = GroupConcat('datapoints__specdpts__datapointtype__name'),
-    #     dp = GroupConcat('datapoints__value', output_field=CharField()),
-    # ).order_by('pk')
-    ####
     conn = connection.cursor()
     conn.execute('''
 select projectQuery.projectName, 
 patientQuery.projectid, patientQuery.firstname, patientQuery.lastname, patientQuery.dateofbirth, patientQuery.patientDatapointType, patientQuery.patientDatapoint, 
 sampleQuery.dateofreceipt, sampleQuery.visit, sampleQuery.sampleDatapointType, sampleQuery.sampleDatapoint,
-rowQuery.method, rowQuery.gene, rowQuery.result, rowQuery.datapointType, rowQuery.datapoint
-from (
-    select project_id, username, ui_project.name as projectName
-    from auth_user
-    left join ui_project_users on ui_project_users.user_id = auth_user.id
-    left join ui_project on ui_project.id = ui_project_users.project_id
-    group by auth_user.id
-    having auth_user.username = "anazeer"
+rowQuery.method, rowQuery.gene, rowQuery.result, rowQuery.datapointType, rowQuery.datapoint,
+rowQuery.datapointsrow_id from (
+    select ui_project.id as project_id, auth_user.username, ui_project.name as projectName, ui_profile.is_admin
+    from ui_project
+    left join ui_project_users on ui_project_users.project_id = ui_project.id
+    left join auth_user on auth_user.id = ui_project_users.user_id
+    left join ui_profile on ui_profile.user_id = auth_user.id ''' + ('' if request.user.profile.is_admin else 'where auth_user.username = "' + request.user.username + '"') + '''
 ) projectQuery left join (
     select ui_projectid.project_id, ui_projectid.id as projectid_id, ui_projectid.projectid, ui_patient.firstname, ui_patient.lastname, ui_patient.dateofbirth,
     group_concat(ui_datapointtype.name, '|') as patientDatapointType,
@@ -335,11 +292,12 @@ from (
     left join ui_specdpts on ui_specdpts.id = ui_datapoint.specdpts_id
     left join ui_datapointtype on ui_datapointtype.id = ui_specdpts.datapointtype_id
     group by ui_datapointsrow.id
-) rowQuery on rowQuery.sample_id = sampleQuery.sample_id;
+) rowQuery on rowQuery.sample_id = sampleQuery.sample_id
     ''')
     pseudo_buffer = Echo()
     writer = csv.writer(pseudo_buffer, delimiter="\t")
     return StreamingHttpResponse(
+    # return HttpResponse(
         # (writer.writerow(dat1[i] + dat2[i] + dat3[i] + dat4[i]) for i in range(dat1.count())),
         (writer.writerow(dat1) for dat1 in conn.fetchall()),
         content_type="text/csv",
