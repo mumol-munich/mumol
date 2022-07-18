@@ -1,3 +1,10 @@
+from django.db import connection
+import pandas as pd
+from copy import deepcopy
+import numpy as np
+
+conn = connection.cursor()
+conn.execute('''
 select projectQuery.projectName, 
 patientQuery.projectid, patientQuery.firstname, patientQuery.lastname, patientQuery.dateofbirth, patientQuery.patientDatapointType, patientQuery.patientDatapoint, 
 sampleQuery.dateofreceipt, sampleQuery.visit, sampleQuery.sampleDatapointType, sampleQuery.sampleDatapoint,
@@ -7,8 +14,7 @@ rowQuery.datapointsrow_id from (
     from ui_project
     left join ui_project_users on ui_project_users.project_id = ui_project.id
     left join auth_user on auth_user.id = ui_project_users.user_id
-    left join ui_profile on ui_profile.user_id = auth_user.id
-    where auth_user.username = "anazeer"
+    left join ui_profile on ui_profile.user_id = auth_user.id ''' + 'where auth_user.username = "testuser01"' + ''' 
 ) projectQuery left join (
     select ui_projectid.project_id, ui_projectid.id as projectid_id, ui_projectid.projectid, ui_patient.firstname, ui_patient.lastname, ui_patient.dateofbirth,
     group_concat(ui_datapointtype.name, '|') as patientDatapointType,
@@ -51,5 +57,32 @@ rowQuery.datapointsrow_id from (
     left join ui_datapointtype on ui_datapointtype.id = ui_specdpts.datapointtype_id
     group by ui_datapointsrow.id
 ) rowQuery on rowQuery.sample_id = sampleQuery.sample_id
-limit 5;
+''')
 
+df = pd.DataFrame(conn.fetchall())
+df.columns = [c[0] for c in conn.description]
+
+df1 = deepcopy(df)
+
+# new
+def_cols = list(df1.columns)
+req_tags = ['Patient_', 'Sample_', '']
+req_cols1 = [['patientDatapointType', 'patientDatapoint'], ['sampleDatapointType', 'sampleDatapoint'], ['datapointType', 'datapoint']]
+req_cols2 = [c for cs in req_cols1 for c in cs]
+req_cols3 = [c for c in def_cols if c not in req_cols2]
+
+tab1 = df1[req_cols3]
+
+tabdf = tab1
+
+for i, rcol in enumerate(req_cols1):
+    tab2 = df1[['datapointsrow_id'] + rcol].set_index('datapointsrow_id').apply(lambda c: c.str.split('|')).reset_index()
+    tab2['datapointsrow_id'] = tab2.apply(lambda d: [d['datapointsrow_id']] * len(d[rcol[0]]), axis = 1)
+    tab2[rcol[1]] = tab2.apply(lambda d: d[rcol[1]][0] if len(d[rcol[1]]) == 1 else d[rcol[1]], axis = 1)
+    tab2[rcol[1]] = tab2.apply(lambda x: [x[rcol[1]]] * len(x[rcol[0]]) if len(x[rcol[1]]) <= 1 else x[rcol[1]], axis = 1)
+    tab2 = tab2.apply(pd.Series.explode)
+    tab2[rcol[0]] = tab2.apply(lambda d: req_tags[i] + d[rcol[0]], axis = 1)
+    tab2 = tab2.pivot(index = 'datapointsrow_id', columns = rcol[0], values = rcol[1])
+    tabdf = pd.merge(tabdf, tab2, on = 'datapointsrow_id')
+
+# new

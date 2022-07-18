@@ -10,12 +10,12 @@ from django.core.paginator import Paginator
 import operator
 from django.db.models import Q
 from functools import reduce
-
+import pandas as pd
 
 from ..models import ChipsetAnalysis, DatapointsRow, PatientDPTs, SampleDPTs, Project, User, GeneAnalysis, DatapointType
 from ..decorators import admin_required
 from ..forms import ProjectAddForm
-from ..functions import fn_convert_genespec_json, fn_auth_project_user
+from ..functions import fn_convert_genespec_json, fn_auth_project_user, fn_geneanalysis_query_df
 
 import json
 from datetime import datetime
@@ -246,7 +246,7 @@ patientQuery.projectid, patientQuery.firstname, patientQuery.lastname, patientQu
 sampleQuery.dateofreceipt, sampleQuery.visit, sampleQuery.sampleDatapointType, sampleQuery.sampleDatapoint,
 rowQuery.method, rowQuery.gene, rowQuery.result, rowQuery.datapointType, rowQuery.datapoint,
 rowQuery.datapointsrow_id from (
-    select ui_project.id as project_id, auth_user.username, ui_project.name as projectName, ui_profile.is_admin
+    select distinct ui_project.id as project_id, ui_project.name as projectName
     from ui_project
     left join ui_project_users on ui_project_users.project_id = ui_project.id
     left join auth_user on auth_user.id = ui_project_users.user_id
@@ -294,15 +294,26 @@ rowQuery.datapointsrow_id from (
     group by ui_datapointsrow.id
 ) rowQuery on rowQuery.sample_id = sampleQuery.sample_id
     ''')
-    pseudo_buffer = Echo()
-    writer = csv.writer(pseudo_buffer, delimiter="\t")
-    return StreamingHttpResponse(
-    # return HttpResponse(
-        # (writer.writerow(dat1[i] + dat2[i] + dat3[i] + dat4[i]) for i in range(dat1.count())),
-        (writer.writerow(dat1) for dat1 in conn.fetchall()),
-        content_type="text/csv",
-        headers={'Content-Disposition': 'attachment; filename="1.tsv"'},
-    )
+    df = pd.DataFrame(conn.fetchall())
+    df.columns = [c[0] for c in conn.description]
+    response = fn_geneanalysis_query_df(df)
+    if not response['ok']:
+        messages.error(request, response['message'])
+        return HttpResponseRedirect(reverse('projects_view_user'))
+    df = response['df']
+    response = HttpResponse(content_type='text/csv')
+    response['Content-Disposition'] = 'attachment; filename=1.tsv'
+    df.to_csv(path_or_buf = response, sep = '\t', index = False)
+    return response
+    # pseudo_buffer = Echo()
+    # writer = csv.writer(pseudo_buffer, delimiter="\t")
+    # return StreamingHttpResponse(
+    # # return HttpResponse(
+    #     # (writer.writerow(dat1[i] + dat2[i] + dat3[i] + dat4[i]) for i in range(dat1.count())),
+    #     (writer.writerow(dat1) for dat1 in conn.fetchall()),
+    #     content_type="text/csv",
+    #     headers={'Content-Disposition': 'attachment; filename="1.tsv"'},
+    # )
     # return HttpResponse('ok')
 # new
 

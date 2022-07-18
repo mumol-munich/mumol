@@ -8,6 +8,8 @@ from .config import content
 import uuid
 from copy import deepcopy
 
+import pandas as pd
+
 def fn_auth_project_user(user, project_pk):
     if user.profile.is_admin or user.project_user.filter(pk = project_pk).exists():
         return dict(ok = True, message = False, return_page = False)
@@ -173,3 +175,26 @@ def fn_checkdpts(cdpt, strict = False):
         if strict:
             return dict(ok = False, message = 'Please provide default value to set to existing entries')
     return dict(ok = True, message = False)
+
+def fn_geneanalysis_query_df(df):
+    try:
+        def_cols = list(df.columns)
+        req_tags = ['Patient_', 'Sample_', '']
+        req_cols = [['patientDatapointType', 'patientDatapoint'], ['sampleDatapointType', 'sampleDatapoint'], ['datapointType', 'datapoint']]
+        req_cols2 = [c for cs in req_cols for c in cs]
+        req_cols2 = [c for c in def_cols if c not in req_cols2]
+        tabdf = df[req_cols2]
+        for i, rcol in enumerate(req_cols):
+            tab2 = df[['datapointsrow_id'] + rcol].set_index('datapointsrow_id').apply(lambda c: c.str.split('|')).reset_index()
+            tab2['datapointsrow_id'] = tab2.apply(lambda d: [d['datapointsrow_id']] * len(d[rcol[0]]), axis = 1)
+            tab2[rcol[1]] = tab2.apply(lambda d: d[rcol[1]][0] if len(d[rcol[1]]) == 1 else d[rcol[1]], axis = 1)
+            tab2[rcol[1]] = tab2.apply(lambda x: [x[rcol[1]]] * len(x[rcol[0]]) if len(x[rcol[1]]) <= 1 else x[rcol[1]], axis = 1)
+            tab2 = tab2.apply(pd.Series.explode)
+            tab2[rcol[0]] = tab2.apply(lambda d: req_tags[i] + d[rcol[0]], axis = 1)
+            tab2 = tab2.pivot(index = 'datapointsrow_id', columns = rcol[0], values = rcol[1])
+            tabdf = pd.merge(tabdf, tab2, on='datapointsrow_id')
+        tabdf.drop('datapointsrow_id', inplace=True, axis=1)
+    except Exception as e:
+        return dict(ok = False, message = e, df = False)
+        return dict(ok = False, message = 'Error in processing query', df = False)
+    return dict(ok = True, message = False, df = tabdf)
