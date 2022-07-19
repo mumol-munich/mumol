@@ -14,6 +14,7 @@ urlpatterns = [
     # user
     path('library/queries/gene', views.queries_gene_user, name = 'queries_gene_user'),
 
+    path('library/projects2', views.projects_view_user2, name='projects_view_user2'),
     path('library/projects', views.projects_view_user, name='projects_view_user'),
     path('library/projects/<int:project_pk>', views.project_view_user, name='project_view_user'),
     path('library/projects/<int:project_pk>/samples', views.samples_view_user, name = 'samples_view_user'),
