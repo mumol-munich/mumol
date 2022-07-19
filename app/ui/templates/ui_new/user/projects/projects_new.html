@@ -191,7 +191,11 @@ $(document).ready(function(){
             { text: 'TSV Export', fieldBoundary: '', title: "{{analysis_type}}" + '_analysis', extend: 'csvHtml5', fieldSeparator: '\t', extension: '.tsv', attr: { class: 'btn btn-sm custom-button-color2' }},
             { text: 'Export All', attr: { class: 'btn btn-sm custom-button-color2' },
             action: function (e, dt, button, config) {
-                window.location = "{% url 'queries_gene_user' %}"
+                if("{{analysis_type}}" == "chipset") {
+                    window.location = "{% url 'queries_chipset_user' %}";
+                } else {
+                    window.location = "{% url 'queries_gene_user' %}";
+                }
             }
             },
         ],

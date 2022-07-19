@@ -195,6 +195,6 @@ def fn_geneanalysis_query_df(df):
             tabdf = pd.merge(tabdf, tab2, on='datapointsrow_id')
         tabdf.drop('datapointsrow_id', inplace=True, axis=1)
     except Exception as e:
-        return dict(ok = False, message = e, df = False)
+        # return dict(ok = False, message = e, df = False)
         return dict(ok = False, message = 'Error in processing query', df = False)
     return dict(ok = True, message = False, df = tabdf)

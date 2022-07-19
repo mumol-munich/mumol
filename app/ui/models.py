@@ -233,6 +233,9 @@ class DatapointsRow(models.Model): # user
     def delete(self, *args, **kwargs):
         self.datapoints.all().delete()
         super(DatapointsRow, self).delete(*args, **kwargs)
+    
+    class Meta:
+        ordering = ('-pk',)
 
 class ChipsetDatapoint(models.Model):
     gene = models.ForeignKey(
@@ -255,6 +258,9 @@ class ChipsetDatapointsRow(models.Model): # user
     def delete(self, *args, **kwargs):
         self.datapoints.all().delete()
         super(ChipsetDatapointsRow, self).delete(*args, **kwargs)
+    
+    class Meta:
+        ordering = ('-pk',)
 
     
 class GeneAnalysis(models.Model): # user
