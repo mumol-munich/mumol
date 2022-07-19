@@ -19,7 +19,7 @@ from numpy import NAN
 import pandas as pd
 from io import BytesIO
 
-from ..models import Project, Sample, Specification, ChipsetSpecification, SpecDPTs, ConfDPTs, Datapoint, GeneAnalysis, ChipsetAnalysis, ChipsetDatapoint, DatapointsRow, ChipsetDatapointsRow
+from ..models import Project, Sample, Specification, ChipsetSpecification, SpecDPTs, ConfDPTs, Datapoint, GeneAnalysis, ChipsetAnalysis, ChipsetDatapoint, DatapointsRow
 from ..functions import fn_checkvalidator, fn_create_or_get_none_datapointtype, fn_auth_project_user
 from ..config import content
 
@@ -704,24 +704,6 @@ def analysis_chipsets_add_remove(request, sample_pk):
                                 return return_page
                             datapoint = ChipsetDatapoint(gene_id = gene_pk, confdpts_id = confdpts_pk, value = ivalue)
                             datapoint.save()
-                            # new
-                            try:
-                                datapointsrow = chipsetanalysis.datapointsrows.filter(gene_id = gene_pk).first()
-                                if not datapointsrow:
-                                    datapointsrow = ChipsetDatapointsRow(gene_id = gene_pk)
-                                    datapointsrow.save()
-                                datapointsrow.datapoints.add(datapoint)
-                                datapointsrow.save()
-                                chipsetanalysis.datapointsrows.add(datapointsrow)
-                                chipsetanalysis.save()
-                            except Exception as e:
-                                if datapointsrow:
-                                    datapointsrow.delete()
-                                chipsetanalysis.delete()
-                                messages.error(request, e)
-                                messages.error(request, 'Error in adding chipset analysis values')
-                                return return_page
-                            # new
                             chipsetanalysis.datapoints.add(datapoint)
                     messages.success(request, 'Success')
                     return return_page_success

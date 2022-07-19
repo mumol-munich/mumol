@@ -245,17 +245,6 @@ class ChipsetDatapoint(models.Model):
         return self.confdpts.datapointtype_id
     class Meta:
         ordering = ('confdpts__priority', '-pk',)
-
-class ChipsetDatapointsRow(models.Model): # user
-    gene = models.ForeignKey(
-        Gene, on_delete=models.RESTRICT, related_name="chipsetdatapointsrow_gene")
-    datapoints = models.ManyToManyField(ChipsetDatapoint, related_name='chipsetdatapointsrow_datapoint')
-
-    # deleting in queryset doesnot work properly
-    def delete(self, *args, **kwargs):
-        self.datapoints.all().delete()
-        super(ChipsetDatapointsRow, self).delete(*args, **kwargs)
-
     
 class GeneAnalysis(models.Model): # user
     sample = models.ForeignKey(
@@ -283,12 +272,10 @@ class ChipsetAnalysis(models.Model): # user
         ChipsetSpecification, on_delete=models.RESTRICT, related_name="chipsetanalysis_chipsetspec")
     datapoints =  models.ManyToManyField(
         ChipsetDatapoint, related_name='chipsetanalysis_datapoint')
-    datapointsrows = models.ManyToManyField(ChipsetDatapointsRow, related_name="chipsetanalysis_datapointsrows")
 
     # deleting in queryset doesnot work properly
     def delete(self, *args, **kwargs):
         self.datapoints.all().delete()
-        [d.delete() for d in self.datapointsrows.all()]
         super(ChipsetAnalysis, self).delete(*args, **kwargs)
     
     class Meta:

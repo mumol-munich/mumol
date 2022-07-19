@@ -101,8 +101,8 @@ Projects - {{title}}
             </tr>
         </thead>
         <tbody>
-            {% for chipsetanalysis in page_obj %}
-                {% for gene in chipsetanalysis.chipsetspec.genes.all %}
+            {% for datapointsrow in page_obj %}
+                {% with chipsetanalysis=datapointsrow.chipsetanalysis_datapointsrows.first %}
                     {% with sample=chipsetanalysis.sample projectid=chipsetanalysis.sample.projectid %}
                     <tr>
                         <td><a href="{% url 'patients_view_user' chipsetanalysis.sample.projectid.project_id %}" class="btn-link text-primary">{{chipsetanalysis.sample.projectid.project.name}}</a></td>
@@ -120,21 +120,17 @@ Projects - {{title}}
                         <td>{{'sample'|set_icons}}<a class="btn-link text-primary" href="{% url 'sample_view_user' sample.id %}"><u>{{sample.get_samplename}}</u></a></td>
                         
                         {% for sampledpt in sampledpts|dpt_exclude_none %}
-                            <th class="th-sm">Sample_{{sampledpt.datapointtype.name}}</th>
+                            <td>{{sampledpt|sampledpt_extract:projectid.pk}}</td>
                         {% endfor %}
-                        
 
-                        <!-- <td>{{chipsetanalysis.chipsetspec.name}}</td> -->
                         <td>{{chipsetanalysis.chipsetspec.get_name}}</td>
-                        <td>{{gene}}</td>
+                        <td>{{datapointsrow.gene.name}}</td>
                         {% for datapointtype in datapointtypes|dpt_exclude_none2 %}
-                            {% with genedptpks=datapointtype.pk|concatstring:","|concatstring:gene.pk %}
-                                {{chipsetanalysis.datapoints.all|cdpt_filter:genedptpks}}
-                            {% endwith %}
+                            {{datapointsrow.datapoints.all|cdpt_filter:datapointtype.pk}}
                         {% endfor %}
                     </tr>
                     {% endwith %}
-                {% endfor %}
+                {% endwith %}
             {% endfor %}
         </tbody>
         {% endif %}

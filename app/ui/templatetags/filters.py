@@ -168,12 +168,15 @@ def dpt_filter(datapoints, datapointtype_pk):
     return format_html(htmlstr)
 
 @register.filter(name='cdpt_filter')
-def cdpt_filter(datapoints, genedptpks):
-    datapointtype_pk, gene_pk = genedptpks.split(',')
+def cdpt_filter(datapoints, datapointtype_pk):
     htmlstr = '<td></td>'
-    datapoint = datapoints.filter(confdpts__datapointtype_id = datapointtype_pk, gene_id = gene_pk).first()
+    datapoint = datapoints.filter(confdpts__datapointtype_id = datapointtype_pk).first()
     if datapoint:
         htmlstr = '<td>' + datapoint.value + '</td>'
+    # datapointtype_pk, gene_pk = genedptpks.split(',')
+    # datapoint = datapoints.filter(confdpts__datapointtype_id = datapointtype_pk, gene_id = gene_pk).first()
+    # if datapoint:
+    #     htmlstr = '<td>' + datapoint.value + '</td>'
     return format_html(htmlstr)
 
 @register.filter(name='dpt_exclude_none')
