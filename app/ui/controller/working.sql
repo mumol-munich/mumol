@@ -1,14 +1,15 @@
-select projectQuery.projectName, 
+select count(1) from 
+(select projectQuery.projectName, 
 patientQuery.projectid, patientQuery.firstname, patientQuery.lastname, patientQuery.dateofbirth, patientQuery.patientDatapointType, patientQuery.patientDatapoint, 
 sampleQuery.dateofreceipt, sampleQuery.visit, sampleQuery.sampleDatapointType, sampleQuery.sampleDatapoint,
 rowQuery.method, rowQuery.gene, rowQuery.result, rowQuery.datapointType, rowQuery.datapoint,
 rowQuery.datapointsrow_id from (
-    select ui_project.id as project_id, auth_user.username, ui_project.name as projectName, ui_profile.is_admin
+    select distinct ui_project.id as project_id, ui_project.name as projectName
     from ui_project
     left join ui_project_users on ui_project_users.project_id = ui_project.id
     left join auth_user on auth_user.id = ui_project_users.user_id
     left join ui_profile on ui_profile.user_id = auth_user.id
-    where auth_user.username = "anazeer"
+    -- where auth_user.username = "testuser01"
 ) projectQuery left join (
     select ui_projectid.project_id, ui_projectid.id as projectid_id, ui_projectid.projectid, ui_patient.firstname, ui_patient.lastname, ui_patient.dateofbirth,
     group_concat(ui_datapointtype.name, '|') as patientDatapointType,
@@ -51,5 +52,7 @@ rowQuery.datapointsrow_id from (
     left join ui_datapointtype on ui_datapointtype.id = ui_specdpts.datapointtype_id
     group by ui_datapointsrow.id
 ) rowQuery on rowQuery.sample_id = sampleQuery.sample_id
-limit 5;
+-- limit 5
+)
+;
 
