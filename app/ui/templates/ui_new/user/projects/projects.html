@@ -129,7 +129,9 @@ Projects - {{title}}
                         <td>{{chipsetanalysis.chipsetspec.get_name}}</td>
                         <td>{{gene}}</td>
                         {% for datapointtype in datapointtypes|dpt_exclude_none2 %}
-                            {{chipsetanalysis.datapoints.all|dpt_filter:datapointtype.pk}}
+                            {% with genedptpks=datapointtype.pk|concatstring:","|concatstring:gene.pk %}
+                                {{chipsetanalysis.datapoints.all|cdpt_filter:genedptpks}}
+                            {% endwith %}
                         {% endfor %}
                     </tr>
                     {% endwith %}

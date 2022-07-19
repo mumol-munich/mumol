@@ -159,9 +159,21 @@ def select_objects(gene, string):
 @register.filter(name='dpt_filter')
 def dpt_filter(datapoints, datapointtype_pk):
     htmlstr = '<td></td>'
-    for datapoint in datapoints:
-        if datapoint.get_datapointtype_id() == datapointtype_pk:
-            htmlstr = '<td>' + datapoint.value + '</td>'
+    datapoint = datapoints.filter(specdpts__datapointtype_id = datapointtype_pk).first()
+    if datapoint:
+        htmlstr = '<td>' + datapoint.value + '</td>'
+    # for datapoint in datapoints:
+    #     if datapoint.get_datapointtype_id() == datapointtype_pk:
+    #         htmlstr = '<td>' + datapoint.value + '</td>'
+    return format_html(htmlstr)
+
+@register.filter(name='cdpt_filter')
+def cdpt_filter(datapoints, genedptpks):
+    datapointtype_pk, gene_pk = genedptpks.split(',')
+    htmlstr = '<td></td>'
+    datapoint = datapoints.filter(confdpts__datapointtype_id = datapointtype_pk, gene_id = gene_pk).first()
+    if datapoint:
+        htmlstr = '<td>' + datapoint.value + '</td>'
     return format_html(htmlstr)
 
 @register.filter(name='dpt_exclude_none')
@@ -198,3 +210,7 @@ def sampledpt_extract(object, projectid_pk):
     if datapoint:
         htmlstr = datapoint.value
     return htmlstr
+
+@register.filter(name='concatstring')
+def concatstring(string1, string2):
+    return str(string1) + str(string2)

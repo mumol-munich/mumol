@@ -230,6 +230,8 @@ def projects_view_user(request):
     paginator = Paginator(paginatorobj, page_length)
     page_obj = paginator.get_page(page_num)
     datapointtypes = DatapointType.objects.values('pk', 'name')
+    # if analysis_type == 'chipset':
+    #     return render(request, 'ui_new/user/projects/projects_tmpchipset.html', dict(projects = projects, analysis_type = analysis_type, datapointtypes = datapointtypes, project_link_deny = True, project_redirect = project_redirect, first_project_id = first_project_id, patientdpts = patientdpts, sampledpts = sampledpts, page_obj = page_obj, page_length = page_length))
     return render(request, 'ui_new/user/projects/projects.html', dict(projects = projects, analysis_type = analysis_type, datapointtypes = datapointtypes, project_link_deny = True, project_redirect = project_redirect, first_project_id = first_project_id, patientdpts = patientdpts, sampledpts = sampledpts, page_obj = page_obj, page_length = page_length))
 
 # new
@@ -302,7 +304,7 @@ rowQuery.datapointsrow_id from (
         return HttpResponseRedirect(reverse('projects_view_user'))
     df = response['df']
     response = HttpResponse(content_type='text/csv')
-    response['Content-Disposition'] = 'attachment; filename=1.tsv'
+    response['Content-Disposition'] = 'attachment; filename=gene_analysis_all.tsv'
     df.to_csv(path_or_buf = response, sep = '\t', index = False)
     return response
     # pseudo_buffer = Echo()
