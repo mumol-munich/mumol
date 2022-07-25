@@ -42,16 +42,10 @@
             {% if geneanalysis.specification.specdpts_specification.count > 1 %}
                 <table class="table table-sm table-bordered">
                     <tbody>
-                        {% for specdpts in geneanalysis.specification.specdpts_specification.all %}
-                                <tr>
-                                    <th>{{specdpts.datapointtype.name}}</th>
-                                    {% for datapointsrow in geneanalysis.datapointsrows.all %}
-                                        {% with datapoint=datapointsrow.datapoints.all|queryset_index_value:forloop.parentloop.counter0 %}
-                                            <td>{{datapoint.value}}</td>
-                                        {% endwith %}
-                                    {% endfor %}
-                                </tr>
-                        {% endfor %}
+                        <tr>
+                            <th>Datapoints</th>
+                            <td>{{geneanalysis.specification.specdpts_specification.count}}</td>
+                        </tr>
                     </tbody>
                 </table>
             {% endif %}

@@ -188,7 +188,6 @@ $(document).ready(function(){
                 window.location = "{% url 'projects_view_user' %}?project_redirect={{project_redirect}}&type={{analysis_type}}&length={{page_length}}";
             }
             },
-            { text: 'TSV Export', fieldBoundary: '', title: "{{analysis_type}}" + '_analysis', extend: 'csvHtml5', fieldSeparator: '\t', extension: '.tsv', attr: { class: 'btn btn-sm custom-button-color2' }},
             { text: 'Export All', attr: { class: 'btn btn-sm custom-button-color2' },
             action: function (e, dt, button, config) {
                 if("{{analysis_type}}" == "chipset") {
