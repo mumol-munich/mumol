@@ -124,3 +124,9 @@ please close the window or hit enter key
 ''')
 
 input()
+
+# python ../manage.py graph_models -a -o ui1.png
+# python ../manage.py graph_models -a --hide-edge-labels -o ui2.png
+# python ../manage.py graph_models -a --arrow-shape normal -o ui3.png
+# python ../manage.py graph_models -a --arrow-shape normal --hide-edge-labels -o ui4.png
+# python ../manage.py graph_models -a -g -o ui5.png
