@@ -217,3 +217,40 @@ def sampledpt_extract(object, projectid_pk):
 @register.filter(name='concatstring')
 def concatstring(string1, string2):
     return str(string1) + str(string2)
+
+
+@register.filter(name="patientdpt_datapoint")
+def patientdpt_datapoint(datapoints, datapointtype_id):
+    htmlstr = ''
+    # datapoint = datapoints.filter(patientdpts_id = patientdpt_pk).first()
+    datapoint = datapoints.filter(patientdpts__datapointtype_id = datapointtype_id).first()
+    if datapoint:
+        htmlstr = datapoint.value
+    return htmlstr
+
+
+@register.filter(name="sampledpt_datapoint")
+def sampledpt_datapoint(datapoints, datapointtype_id):
+    htmlstr = ''
+    # datapoint = datapoints.filter(sampledpts_id = sampledpt_pk).first()
+    datapoint = datapoints.filter(sampledpts__datapointtype_id = datapointtype_id).first()
+    if datapoint:
+        htmlstr = datapoint.value
+    return htmlstr
+
+
+@register.filter(name="gdpt_datapoint")
+def gdpt_datapoint(datapoints, datapointtype_pk):
+    htmlstr = ''
+    datapoint = datapoints.filter(specdpts__datapointtype_id = datapointtype_pk).first()
+    if datapoint:
+        htmlstr = datapoint.value
+    return htmlstr
+
+@register.filter(name="cdpt_datapoint")
+def cdpt_datapoint(datapoints, datapointtype_pk):
+    htmlstr = ''
+    datapoint = datapoints.filter(confdpts__datapointtype_id = datapointtype_pk).first()
+    if datapoint:
+        htmlstr = datapoint.value
+    return htmlstr

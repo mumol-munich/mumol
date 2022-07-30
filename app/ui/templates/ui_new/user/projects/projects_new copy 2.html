@@ -22,19 +22,15 @@ Projects - {{title}}
                 <th class="th-sm" data-tag="tag.patient.firstname">First Name</th>
                 <th class="th-sm" data-tag="tag.patient.lastname">Last Name</th>
                 <th class="th-sm" data-tag="tag.patient.dateofbirth">Date of Birth</th>
-
-                {% for patientdptype in patientdptypes %}
-                    <th class="th-sm" data-tag="tag.patientdpt.{{patientdptype.0}}">Patient_{{patientdptype.2}}</th>
+                {% for patientdpt in patientdpts|dpt_exclude_none %}
+                    <th class="th-sm" data-tag="tag.patientdpt.{{patientdpt.pk}}">Patient_{{patientdpt.datapointtype.name}}</th>
                 {% endfor %}
-                
 
                 
                 <th class="th-sm" data-tag="tag.geneanalysis.sample">Sample</th>
-
-                {% for sampledptype in sampledptypes %}
-                    <th class="th-sm" data-tag="tag.sampledpt.{{sampledptype.0}}">Sample_{{sampledptype.2}}</th>
+                {% for sampledpt in sampledpts|dpt_exclude_none %}
+                <th class="th-sm" data-tag="tag.sampledpt.{{sampledpt.pk}}">Sample_{{sampledpt.datapointtype.name}}</th>
                 {% endfor %}
-
                 
                 <th class="th-sm" data-tag="tag.specification.method">Method</th>
                 <th class="th-sm" data-tag="tag.specification.gene">Gene</th>
@@ -60,16 +56,11 @@ Projects - {{title}}
                             {% for patientdpt in patientdpts|dpt_exclude_none %}
                                 <td>{{projectid.patientinfo.datapoints.all|patientdpt_datapoint:patientdpt.pk}}</td>
                             {% endfor %}
-
-                            {% for patientdptype in patientdptypes %}
-                                <td>{{projectid.patientinfo.datapoints.all|patientdpt_datapoint:patientdptype.1}}</td>
-                            {% endfor %}
     
                             <td>{{'sample'|set_icons}}<a class="btn-link text-primary" href="{% url 'sample_view_user' geneanalysis.sample_id %}"><u>{{geneanalysis.sample.get_samplename}}</u></a></td>
-
-
-                            {% for sampledptype in sampledptypes %}
-                                <td>{{sample.sampleinfo.datapoints.all|sampledpt_datapoint:sampledptype.1}}</td>
+    
+                            {% for sampledpt in sampledpts|dpt_exclude_none %}
+                                <td>{{sample.sampleinfo.datapoints.all|sampledpt_datapoint:sampledpt.pk}}</td>
                             {% endfor %}
     
                             <td>{{geneanalysis.specification.method}}</td>
@@ -94,13 +85,13 @@ Projects - {{title}}
                 <th class="th-sm" data-tag="tag.patient.firstname">First Name</th>
                 <th class="th-sm" data-tag="tag.patient.lastname">Last Name</th>
                 <th class="th-sm" data-tag="tag.patient.dateofbirth">Date of Birth</th>
-                {% for patientdptype in patientdptypes %}
-                    <th class="th-sm" data-tag="tag.patientdpt.{{patientdptype.0}}">Patient_{{patientdptype.2}}</th>
+                {% for patientdpt in patientdpts|dpt_exclude_none %}
+                    <th class="th-sm" data-tag="tag.patientdpt.{{patientdpt.pk}}">Patient_{{patientdpt.datapointtype.name}}</th>
                 {% endfor %}
 
                 <th class="th-sm" data-tag="tag.chipsetanalysis.sample">Sample</th>
-                {% for sampledptype in sampledptypes %}
-                    <th class="th-sm" data-tag="tag.sampledpt.{{sampledptype.0}}">Sample_{{sampledptype.2}}</th>
+                {% for sampledpt in sampledpts|dpt_exclude_none %}
+                <th class="th-sm" data-tag="tag.sampledpt.{{sampledpt.pk}}">Sample_{{sampledpt.datapointtype.name}}</th>
                 {% endfor %}
 
                 <th class="th-sm" data-tag="tag.specification.name">Chipset</th>
@@ -123,14 +114,14 @@ Projects - {{title}}
                         <td>{{projectid.patient.lastname}}</td>
                         <td>{{projectid.patient.get_dateofbirth}}</td>
 
-                        {% for patientdptype in patientdptypes %}
-                            <td>{{projectid.patientinfo.datapoints.all|patientdpt_datapoint:patientdptype.1}}</td>
+                        {% for patientdpt in patientdpts|dpt_exclude_none %}
+                            <td>{{projectid.patientinfo.datapoints.all|patientdpt_datapoint:patientdpt.pk}}</td>
                         {% endfor %}
 
                         <td>{{'sample'|set_icons}}<a class="btn-link text-primary" href="{% url 'sample_view_user' sample.id %}"><u>{{sample.get_samplename}}</u></a></td>
                         
-                        {% for sampledptype in sampledptypes %}
-                            <td>{{sample.sampleinfo.datapoints.all|sampledpt_datapoint:sampledptype.1}}</td>
+                        {% for sampledpt in sampledpts|dpt_exclude_none %}
+                            <td>{{sample.sampleinfo.datapoints.all|sampledpt_datapoint:sampledpt.pk}}</td>
                         {% endfor %}
 
                         <td>{{chipsetanalysis.chipsetspec.get_name}}</td>

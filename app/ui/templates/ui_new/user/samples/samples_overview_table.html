@@ -41,14 +41,16 @@
                 <td><span class="id_firstname">{{sample.projectid.patient.firstname}}</span></td>
                 <td><span class="id_lastname">{{sample.projectid.patient.lastname}}</span></td>
                 <td><span class="id_dateofbirth">{{sample.projectid.get_dateofbirth}}</span></td>
-                {% for datapoint in sample.projectid.patientinfo.datapoints.all %}
-                    <td>{{datapoint.value}}</td>
+
+                {% for patientdpt in last_sample.projectid.patientinfo.patientspec.patientdpts_patientspec.all|dpt_exclude_none %}
+                    <td>{{sample.projectid.patientinfo.datapoints.all|patientdpt_datapoint:patientdpt.pk}}</td>
                 {% endfor %}
     
                 <td>{{sample.gcount}}</td>
                 <td>{{sample.ccount}}</td>
-                {% for datapoint in sample.sampleinfo.datapoints.all %} 
-                    <td>{{datapoint.value}}</td>
+
+                {% for sampledpt in last_sample.projectid.project.samplespec.sampledpts_samplespec.all|dpt_exclude_none %} 
+                    <td>{{sample.sampleinfo.datapoints.all|sampledpt_datapoint:sampledpt.pk}}</td>
                 {% endfor %}
             </tr>
             {% endfor %}

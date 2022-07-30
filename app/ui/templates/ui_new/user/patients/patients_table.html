@@ -42,8 +42,8 @@
                     {% endfor %}
                 {% endwith %}
             </td>
-            {% for datapoint in projectid.patientinfo.datapoints.all %}
-                <td>{{datapoint.value}}</td>
+            {% for patientdpt in last_projectid.patientinfo.patientspec.patientdpts_patientspec.all|dpt_exclude_none %}
+                <td>{{projectid.patientinfo.datapoints.all|patientdpt_datapoint:patientdpt.pk}}</td>
             {% endfor %}
         </tr>
         {% endfor %}

@@ -25,8 +25,8 @@
             </td>
             <td>{{sample.geneanalysis_sample.count}}</td>
             <td>{{sample.chipsetanalysis_sample.count}}</td>
-            {% for datapoint in sample.sampleinfo.datapoints.all %} 
-                <td>{{datapoint.value}}</td>
+            {% for sampledpt in projectid.project.samplespec.sampledpts_samplespec.all|dpt_exclude_none %}
+                <td>{{sample.sampleinfo.datapoints.all|sampledpt_datapoint:sampledpt.pk}}</td>
             {% endfor %}
         </tr>
         {% endfor %}

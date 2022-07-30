@@ -54,186 +54,186 @@ class Echo:
         return value
 
 
-# user
-@login_required
-def projects_view_user2(request):
-    project_redirect = request.GET.get('project_redirect')
-    analysis_type = request.GET.get('type')
-    page_num = request.GET.get('page', 1)
-    page_length = request.GET.get('length')
-    if not page_length:
-        page_length = 5
-    if not int(page_length) in [5, 10, 25, 50]:
-        page_length = 5
-    if request.user.project_user.exists():
-        first_project_id = request.user.project_user.first().pk
-    else:
-        first_project_id = False
-        project_redirect = False
-    if request.user.profile.is_admin:
-        projects = Project.objects.order_by('-pk')
-        # patientdpts = PatientDPTs.objects.all()
-        # sampledpts = SampleDPTs.objects.all()
-    else:
-        projects = request.user.project_user.order_by('-pk')
-        # patientdpts = PatientDPTs.objects.filter(patientspec__project__users = request.user).all()
-        # sampledpts = SampleDPTs.objects.filter(samplespec__project__users = request.user).all()
-    # new
-    patientdpts = PatientDPTs.objects.none()
-    sampledpts = SampleDPTs.objects.none()
-    for project in projects:
-        patientdpts |= project.patientspec.patientdpts_patientspec.all()
-        sampledpts |= project.samplespec.sampledpts_samplespec.all()
-    # new
-    geneanalyses = GeneAnalysis.objects.none()
-    chipsetanalyses = ChipsetAnalysis.objects.none()
-    if not analysis_type or analysis_type != 'chipset':
-        analysis_type = 'gene'
-        geneanalyses = GeneAnalysis.objects.filter(sample__projectid__project_id__in = list(projects.values_list('id', flat = True)))
-        # filter
-        filterdict = {}
-        for tag in request.GET:
-            if tag.startswith('tag.'):
-                tagwords = tag.split(".")
-                if tagwords[1] == 'project':
-                    filterdict["specification__project__name__contains"] = request.GET[tag]
-                if tagwords[1] == 'projectid':
-                    filterdict["sample__projectid__projectid__contains"] = request.GET[tag]
-                if tagwords[1] == 'patient':
-                    if tagwords[2] == "dateofbirth":
-                        # dateofbirth = datetime.strptime(request.GET[tag], '%d.%m.%Y')
-                        # filterdict[f"sample__projectid__patient__{tagwords[2]}"] = dateofbirth
-                        dateofbirth = request.GET[tag].split(".")
-                        geneanalyses = geneanalyses.filter(reduce(operator.and_, (Q(sample__projectid__patient__dateofbirth__contains = int(dob)) for dob in dateofbirth)))
-                    else:
-                        filterdict[f"sample__projectid__patient__{tagwords[2]}__contains"] = request.GET[tag]
-                if tagwords[1] == 'patientdpt':
-                    filterdict["sample__projectid__patientinfo__patientspec__patientdpts_patientspec__id"] = tagwords[2]
-                    filterdict["sample__projectid__patientinfo__datapoints__value__contains"] = request.GET[tag]
-                if tagwords[1] == 'geneanalysis':
-                    # dateofreceipt = request.GET[tag].split(" ")[0].split(".")
-                    # geneanalyses = geneanalyses.filter(reduce(operator.and_, (Q(sample__dateofreceipt__contains = int(dor)) for dor in dateofreceipt)))
-                    try:
-                        sampledate, samplevisit = request.GET[tag].split("(")
-                    except:
-                        sampledate = request.GET[tag]
-                        samplevisit = None
-                    samf = Q()
-                    if sampledate:
-                        sampledate = sampledate.split(".")
-                        samd = reduce(operator.and_, (Q(sample__dateofreceipt__contains = int(dor.strip())) for dor in sampledate))
-                        if samd:
-                            samf.add(samd, Q.AND)
-                    if samplevisit:
-                        samplevisit = samplevisit.split(")")[0].strip()
-                        if samplevisit:
-                            samv = Q(sample__visit = samplevisit)
-                            if samv:
-                                samf.add(samv, Q.AND)
-                    if samf:
-                        geneanalyses = geneanalyses.filter(samf)
-                if tagwords[1] == 'sampledpt':
-                    filterdict["sample__sampleinfo__samplespec__sampledpts_samplespec__id"] = tagwords[2]
-                    filterdict["sample__sampleinfo__datapoints__value__contains"] = request.GET[tag]
-                if tagwords[1] == 'specification':
-                    if tagwords[2] == 'status':
-                        filterdict[f"specification__{tagwords[2]}__contains"] = request.GET[tag]
-                    else:
-                        filterdict[f"specification__{tagwords[2]}__name__contains"] = request.GET[tag]
-                if tagwords[1] == 'datapointtype':
-                    filterdict[f"datapoints__specdpts__datapointtype_id"] = tagwords[2]
-                    filterdict[f"datapoints__value__contains"] = request.GET[tag]
-        geneanalyses = geneanalyses.filter(**filterdict)
-        # filter
-        paginatorobj = geneanalyses
-    else:
-        chipsetanalyses = ChipsetAnalysis.objects.filter(sample__projectid__project_id__in = list(projects.values_list('id', flat = True)))
-        # filter
-        filterdict = {}
-        for tag in request.GET:
-            if tag.startswith('tag.'):
-                tagwords = tag.split(".")
-                if tagwords[1] == 'project':
-                    filterdict["chipsetspec__project__name__contains"] = request.GET[tag]
-                if tagwords[1] == 'projectid':
-                    filterdict["sample__projectid__projectid__contains"] = request.GET[tag]
-                if tagwords[1] == 'patient':
-                    if tagwords[2] == "dateofbirth":
-                        dateofbirth = request.GET[tag].split(".")
-                        chipsetanalyses = chipsetanalyses.filter(reduce(operator.and_, (Q(sample__projectid__patient__dateofbirth__contains = int(dob)) for dob in dateofbirth)))
-                    else:
-                        filterdict[f"sample__projectid__patient__{tagwords[2]}__contains"] = request.GET[tag]
-                if tagwords[1] == 'patientdpt':
-                    filterdict["sample__projectid__patientinfo__patientspec__patientdpts_patientspec__id"] = tagwords[2]
-                    filterdict["sample__projectid__patientinfo__datapoints__value__contains"] = request.GET[tag]
-                if tagwords[1] == 'chipsetanalysis':
-                    try:
-                        sampledate, samplevisit = request.GET[tag].split("(")
-                    except:
-                        sampledate = request.GET[tag]
-                        samplevisit = None
-                    samf = Q()
-                    if sampledate:
-                        sampledate = sampledate.split(".")
-                        samd = reduce(operator.and_, (Q(sample__dateofreceipt__contains = int(dor.strip())) for dor in sampledate))
-                        if samd:
-                            samf.add(samd, Q.AND)
-                    if samplevisit:
-                        samplevisit = samplevisit.split(")")[0].strip()
-                        if samplevisit:
-                            samv = Q(sample__visit = samplevisit)
-                            if samv:
-                                samf.add(samv, Q.AND)
-                    if samf:
-                        chipsetanalyses = chipsetanalyses.filter(samf)
-                if tagwords[1] == 'sampledpt':
-                    filterdict["sample__sampleinfo__samplespec__sampledpts_samplespec__id"] = tagwords[2]
-                    filterdict["sample__sampleinfo__datapoints__value__contains"] = request.GET[tag]
-                if tagwords[1] == 'specification':
-                    if tagwords[2] == 'name':
-                        try:
-                            chipname, chipinfo = request.GET[tag].split("(")
-                            chipinfo = chipinfo.strip().split(",")
-                        except:
-                            chipname = request.GET[tag].strip()
-                            chipinfo = None
-                        chipf = Q()
-                        if chipname:
-                            chipn = Q(chipsetspec__name__contains = chipname)
-                            if chipn:
-                                chipf.add(chipn, Q.AND)
-                        if chipinfo:
-                            chipinfo = [c.replace('version:', '').replace('manufacturer:', '').split(")")[0].strip() for c in chipinfo]
-                            print(chipinfo)
-                            chipv = reduce(operator.or_, (Q(chipsetspec__version = v) for v in chipinfo))
-                            chipf2 = Q()
-                            if chipv:
-                                chipf2.add(chipv, Q.OR)
-                            chipm = reduce(operator.or_, (Q(chipsetspec__manufacturer__contains = m) for m in chipinfo))
-                            if chipm:
-                                chipf2.add(chipm, Q.OR)
-                            if chipf2:
-                                chipf.add(chipf2, Q.AND)
-                        if chipf:
-                            chipsetanalyses = chipsetanalyses.filter(chipf)
-                    if tagwords[2] == 'genes':
-                        # filterdict["chipsetspec__genes__name__contains"] = request.GET[tag]
-                        messages.error(request, 'This functionality is not available for Genes')
-                        return HttpResponseRedirect(reverse('projects_view_user') + '?project_redirect=false&type=chipset&length=' + page_length)
-                if tagwords[1] == 'datapointtype':
-                    # filterdict[f"datapoints__confdpts__datapointtype_id"] = tagwords[2]
-                    # filterdict[f"datapoints__value__contains"] = request.GET[tag]
-                    messages.error(request, 'This functionality is not available for Chipset datapoints')
-                    return HttpResponseRedirect(reverse('projects_view_user') + '?project_redirect=false&type=chipset&length=' + page_length)
-        chipsetanalyses = chipsetanalyses.filter(**filterdict)
-        # filter
-        paginatorobj = chipsetanalyses
-    paginator = Paginator(paginatorobj, page_length)
-    page_obj = paginator.get_page(page_num)
-    datapointtypes = DatapointType.objects.values('pk', 'name')
-    # if analysis_type == 'chipset':
-    #     return render(request, 'ui_new/user/projects/projects_tmpchipset.html', dict(projects = projects, analysis_type = analysis_type, datapointtypes = datapointtypes, project_link_deny = True, project_redirect = project_redirect, first_project_id = first_project_id, patientdpts = patientdpts, sampledpts = sampledpts, page_obj = page_obj, page_length = page_length))
-    return render(request, 'ui_new/user/projects/projects.html', dict(projects = projects, analysis_type = analysis_type, datapointtypes = datapointtypes, project_link_deny = True, project_redirect = project_redirect, first_project_id = first_project_id, patientdpts = patientdpts, sampledpts = sampledpts, page_obj = page_obj, page_length = page_length))
+# # user
+# @login_required
+# def projects_view_user2(request):
+#     project_redirect = request.GET.get('project_redirect')
+#     analysis_type = request.GET.get('type')
+#     page_num = request.GET.get('page', 1)
+#     page_length = request.GET.get('length')
+#     if not page_length:
+#         page_length = 5
+#     if not int(page_length) in [5, 10, 25, 50]:
+#         page_length = 5
+#     if request.user.project_user.exists():
+#         first_project_id = request.user.project_user.first().pk
+#     else:
+#         first_project_id = False
+#         project_redirect = False
+#     if request.user.profile.is_admin:
+#         projects = Project.objects.order_by('-pk')
+#         # patientdpts = PatientDPTs.objects.all()
+#         # sampledpts = SampleDPTs.objects.all()
+#     else:
+#         projects = request.user.project_user.order_by('-pk')
+#         # patientdpts = PatientDPTs.objects.filter(patientspec__project__users = request.user).all()
+#         # sampledpts = SampleDPTs.objects.filter(samplespec__project__users = request.user).all()
+#     # new
+#     patientdpts = PatientDPTs.objects.none()
+#     sampledpts = SampleDPTs.objects.none()
+#     for project in projects:
+#         patientdpts |= project.patientspec.patientdpts_patientspec.all()
+#         sampledpts |= project.samplespec.sampledpts_samplespec.all()
+#     # new
+#     geneanalyses = GeneAnalysis.objects.none()
+#     chipsetanalyses = ChipsetAnalysis.objects.none()
+#     if not analysis_type or analysis_type != 'chipset':
+#         analysis_type = 'gene'
+#         geneanalyses = GeneAnalysis.objects.filter(sample__projectid__project_id__in = list(projects.values_list('id', flat = True)))
+#         # filter
+#         filterdict = {}
+#         for tag in request.GET:
+#             if tag.startswith('tag.'):
+#                 tagwords = tag.split(".")
+#                 if tagwords[1] == 'project':
+#                     filterdict["specification__project__name__contains"] = request.GET[tag]
+#                 if tagwords[1] == 'projectid':
+#                     filterdict["sample__projectid__projectid__contains"] = request.GET[tag]
+#                 if tagwords[1] == 'patient':
+#                     if tagwords[2] == "dateofbirth":
+#                         # dateofbirth = datetime.strptime(request.GET[tag], '%d.%m.%Y')
+#                         # filterdict[f"sample__projectid__patient__{tagwords[2]}"] = dateofbirth
+#                         dateofbirth = request.GET[tag].split(".")
+#                         geneanalyses = geneanalyses.filter(reduce(operator.and_, (Q(sample__projectid__patient__dateofbirth__contains = int(dob)) for dob in dateofbirth)))
+#                     else:
+#                         filterdict[f"sample__projectid__patient__{tagwords[2]}__contains"] = request.GET[tag]
+#                 if tagwords[1] == 'patientdpt':
+#                     filterdict["sample__projectid__patientinfo__patientspec__patientdpts_patientspec__id"] = tagwords[2]
+#                     filterdict["sample__projectid__patientinfo__datapoints__value__contains"] = request.GET[tag]
+#                 if tagwords[1] == 'geneanalysis':
+#                     # dateofreceipt = request.GET[tag].split(" ")[0].split(".")
+#                     # geneanalyses = geneanalyses.filter(reduce(operator.and_, (Q(sample__dateofreceipt__contains = int(dor)) for dor in dateofreceipt)))
+#                     try:
+#                         sampledate, samplevisit = request.GET[tag].split("(")
+#                     except:
+#                         sampledate = request.GET[tag]
+#                         samplevisit = None
+#                     samf = Q()
+#                     if sampledate:
+#                         sampledate = sampledate.split(".")
+#                         samd = reduce(operator.and_, (Q(sample__dateofreceipt__contains = int(dor.strip())) for dor in sampledate))
+#                         if samd:
+#                             samf.add(samd, Q.AND)
+#                     if samplevisit:
+#                         samplevisit = samplevisit.split(")")[0].strip()
+#                         if samplevisit:
+#                             samv = Q(sample__visit = samplevisit)
+#                             if samv:
+#                                 samf.add(samv, Q.AND)
+#                     if samf:
+#                         geneanalyses = geneanalyses.filter(samf)
+#                 if tagwords[1] == 'sampledpt':
+#                     filterdict["sample__sampleinfo__samplespec__sampledpts_samplespec__id"] = tagwords[2]
+#                     filterdict["sample__sampleinfo__datapoints__value__contains"] = request.GET[tag]
+#                 if tagwords[1] == 'specification':
+#                     if tagwords[2] == 'status':
+#                         filterdict[f"specification__{tagwords[2]}__contains"] = request.GET[tag]
+#                     else:
+#                         filterdict[f"specification__{tagwords[2]}__name__contains"] = request.GET[tag]
+#                 if tagwords[1] == 'datapointtype':
+#                     filterdict[f"datapoints__specdpts__datapointtype_id"] = tagwords[2]
+#                     filterdict[f"datapoints__value__contains"] = request.GET[tag]
+#         geneanalyses = geneanalyses.filter(**filterdict)
+#         # filter
+#         paginatorobj = geneanalyses
+#     else:
+#         chipsetanalyses = ChipsetAnalysis.objects.filter(sample__projectid__project_id__in = list(projects.values_list('id', flat = True)))
+#         # filter
+#         filterdict = {}
+#         for tag in request.GET:
+#             if tag.startswith('tag.'):
+#                 tagwords = tag.split(".")
+#                 if tagwords[1] == 'project':
+#                     filterdict["chipsetspec__project__name__contains"] = request.GET[tag]
+#                 if tagwords[1] == 'projectid':
+#                     filterdict["sample__projectid__projectid__contains"] = request.GET[tag]
+#                 if tagwords[1] == 'patient':
+#                     if tagwords[2] == "dateofbirth":
+#                         dateofbirth = request.GET[tag].split(".")
+#                         chipsetanalyses = chipsetanalyses.filter(reduce(operator.and_, (Q(sample__projectid__patient__dateofbirth__contains = int(dob)) for dob in dateofbirth)))
+#                     else:
+#                         filterdict[f"sample__projectid__patient__{tagwords[2]}__contains"] = request.GET[tag]
+#                 if tagwords[1] == 'patientdpt':
+#                     filterdict["sample__projectid__patientinfo__patientspec__patientdpts_patientspec__id"] = tagwords[2]
+#                     filterdict["sample__projectid__patientinfo__datapoints__value__contains"] = request.GET[tag]
+#                 if tagwords[1] == 'chipsetanalysis':
+#                     try:
+#                         sampledate, samplevisit = request.GET[tag].split("(")
+#                     except:
+#                         sampledate = request.GET[tag]
+#                         samplevisit = None
+#                     samf = Q()
+#                     if sampledate:
+#                         sampledate = sampledate.split(".")
+#                         samd = reduce(operator.and_, (Q(sample__dateofreceipt__contains = int(dor.strip())) for dor in sampledate))
+#                         if samd:
+#                             samf.add(samd, Q.AND)
+#                     if samplevisit:
+#                         samplevisit = samplevisit.split(")")[0].strip()
+#                         if samplevisit:
+#                             samv = Q(sample__visit = samplevisit)
+#                             if samv:
+#                                 samf.add(samv, Q.AND)
+#                     if samf:
+#                         chipsetanalyses = chipsetanalyses.filter(samf)
+#                 if tagwords[1] == 'sampledpt':
+#                     filterdict["sample__sampleinfo__samplespec__sampledpts_samplespec__id"] = tagwords[2]
+#                     filterdict["sample__sampleinfo__datapoints__value__contains"] = request.GET[tag]
+#                 if tagwords[1] == 'specification':
+#                     if tagwords[2] == 'name':
+#                         try:
+#                             chipname, chipinfo = request.GET[tag].split("(")
+#                             chipinfo = chipinfo.strip().split(",")
+#                         except:
+#                             chipname = request.GET[tag].strip()
+#                             chipinfo = None
+#                         chipf = Q()
+#                         if chipname:
+#                             chipn = Q(chipsetspec__name__contains = chipname)
+#                             if chipn:
+#                                 chipf.add(chipn, Q.AND)
+#                         if chipinfo:
+#                             chipinfo = [c.replace('version:', '').replace('manufacturer:', '').split(")")[0].strip() for c in chipinfo]
+#                             print(chipinfo)
+#                             chipv = reduce(operator.or_, (Q(chipsetspec__version = v) for v in chipinfo))
+#                             chipf2 = Q()
+#                             if chipv:
+#                                 chipf2.add(chipv, Q.OR)
+#                             chipm = reduce(operator.or_, (Q(chipsetspec__manufacturer__contains = m) for m in chipinfo))
+#                             if chipm:
+#                                 chipf2.add(chipm, Q.OR)
+#                             if chipf2:
+#                                 chipf.add(chipf2, Q.AND)
+#                         if chipf:
+#                             chipsetanalyses = chipsetanalyses.filter(chipf)
+#                     if tagwords[2] == 'genes':
+#                         # filterdict["chipsetspec__genes__name__contains"] = request.GET[tag]
+#                         messages.error(request, 'This functionality is not available for Genes')
+#                         return HttpResponseRedirect(reverse('projects_view_user') + '?project_redirect=false&type=chipset&length=' + page_length)
+#                 if tagwords[1] == 'datapointtype':
+#                     # filterdict[f"datapoints__confdpts__datapointtype_id"] = tagwords[2]
+#                     # filterdict[f"datapoints__value__contains"] = request.GET[tag]
+#                     messages.error(request, 'This functionality is not available for Chipset datapoints')
+#                     return HttpResponseRedirect(reverse('projects_view_user') + '?project_redirect=false&type=chipset&length=' + page_length)
+#         chipsetanalyses = chipsetanalyses.filter(**filterdict)
+#         # filter
+#         paginatorobj = chipsetanalyses
+#     paginator = Paginator(paginatorobj, page_length)
+#     page_obj = paginator.get_page(page_num)
+#     datapointtypes = DatapointType.objects.values('pk', 'name')
+#     # if analysis_type == 'chipset':
+#     #     return render(request, 'ui_new/user/projects/projects_tmpchipset.html', dict(projects = projects, analysis_type = analysis_type, datapointtypes = datapointtypes, project_link_deny = True, project_redirect = project_redirect, first_project_id = first_project_id, patientdpts = patientdpts, sampledpts = sampledpts, page_obj = page_obj, page_length = page_length))
+#     return render(request, 'ui_new/user/projects/projects.html', dict(projects = projects, analysis_type = analysis_type, datapointtypes = datapointtypes, project_link_deny = True, project_redirect = project_redirect, first_project_id = first_project_id, patientdpts = patientdpts, sampledpts = sampledpts, page_obj = page_obj, page_length = page_length))
 
 @login_required
 def projects_view_user(request):
@@ -256,11 +256,34 @@ def projects_view_user(request):
         projects = Project.objects.order_by('-pk')
     else:
         projects = request.user.project_user.order_by('-pk')
-    patientdpts = PatientDPTs.objects.none()
-    sampledpts = SampleDPTs.objects.none()
-    for project in projects:
-        patientdpts |= project.patientspec.patientdpts_patientspec.all()
-        sampledpts |= project.samplespec.sampledpts_samplespec.all()
+    # patientdpts = PatientDPTs.objects.none()
+    # sampledpts = SampleDPTs.objects.none()
+    # for project in projects:
+    #     patientdpts |= project.patientspec.patientdpts_patientspec.all()
+    #     sampledpts |= project.samplespec.sampledpts_samplespec.all()
+    patientdptypesdef = PatientDPTs.objects.exclude(datapointtype__name = "default_none").values_list('pk', 'datapointtype_id', 'datapointtype__name')
+    patientdptypes = []
+    for tmp1 in patientdptypesdef:
+        tmp3 = False
+        for i, tmp2 in enumerate(patientdptypes):
+            if tmp2[1] == tmp1[1]:
+                patientdptypes[i][0] = f"{tmp2[0]},{tmp1[0]}"
+                tmp3 = True
+                break
+        if not tmp3:
+            patientdptypes.append(list(tmp1))
+    sampledptypesdef = SampleDPTs.objects.exclude(datapointtype__name = "default_none").values_list('pk', 'datapointtype_id', 'datapointtype__name')
+    sampledptypes = []
+    for tmp1 in sampledptypesdef:
+        tmp3 = False
+        for i, tmp2 in enumerate(sampledptypes):
+            if tmp2[1] == tmp1[1]:
+                sampledptypes[i][0] = f"{tmp2[0]},{tmp1[0]}"
+                tmp3 = True
+                break
+        if not tmp3:
+            sampledptypes.append(list(tmp1))        
+
     datapointtypes = DatapointType.objects.values('pk', 'name')
     if not analysis_type or analysis_type != 'chipset':
         datapointsrows = DatapointsRow.objects.filter(geneanalysis_datapointsrows__sample__projectid__project_id__in = list(projects.values_list('id', flat = True)))
@@ -280,7 +303,7 @@ def projects_view_user(request):
                     else:
                         filterdict[f"geneanalysis_datapointsrows__sample__projectid__patient__{tagwords[2]}__contains"] = request.GET[tag]
                 if tagwords[1] == 'patientdpt':
-                    filterdict["geneanalysis_datapointsrows__sample__projectid__patientinfo__patientspec__patientdpts_patientspec__id"] = tagwords[2]
+                    filterdict["geneanalysis_datapointsrows__sample__projectid__patientinfo__patientspec__patientdpts_patientspec__id__in"] = tagwords[2].split(",")
                     filterdict["geneanalysis_datapointsrows__sample__projectid__patientinfo__datapoints__value__contains"] = request.GET[tag]
                 if tagwords[1] == 'geneanalysis':
                     try:
@@ -303,7 +326,7 @@ def projects_view_user(request):
                     if samf:
                         datapointsrows = datapointsrows.filter(samf)
                 if tagwords[1] == 'sampledpt':
-                    filterdict["geneanalysis_datapointsrows__sample__sampleinfo__samplespec__sampledpts_samplespec__id"] = tagwords[2]
+                    filterdict["geneanalysis_datapointsrows__sample__sampleinfo__samplespec__sampledpts_samplespec__id__in"] = tagwords[2].split(",")
                     filterdict["geneanalysis_datapointsrows__sample__sampleinfo__datapoints__value__contains"] = request.GET[tag]
                 if tagwords[1] == 'specification':
                     if tagwords[2] == 'status':
@@ -334,7 +357,7 @@ def projects_view_user(request):
                     else:
                         filterdict[f"chipsetanalysis_datapointsrows__sample__projectid__patient__{tagwords[2]}__contains"] = request.GET[tag]
                 if tagwords[1] == 'patientdpt':
-                    filterdict["chipsetanalysis_datapointsrows__sample__projectid__patientinfo__patientspec__patientdpts_patientspec__id"] = tagwords[2]
+                    filterdict["chipsetanalysis_datapointsrows__sample__projectid__patientinfo__patientspec__patientdpts_patientspec__id__in"] = tagwords[2].split(",")
                     filterdict["chipsetanalysis_datapointsrows__sample__projectid__patientinfo__datapoints__value__contains"] = request.GET[tag]
                 if tagwords[1] == 'chipsetanalysis':
                     try:
@@ -357,7 +380,7 @@ def projects_view_user(request):
                     if samf:
                         datapointsrows = datapointsrows.filter(samf)
                 if tagwords[1] == 'sampledpt':
-                    filterdict["chipsetanalysis_datapointsrows__sample__sampleinfo__samplespec__sampledpts_samplespec__id"] = tagwords[2]
+                    filterdict["chipsetanalysis_datapointsrows__sample__sampleinfo__samplespec__sampledpts_samplespec__id__in"] = tagwords[2].split(",")
                     filterdict["chipsetanalysis_datapointsrows__sample__sampleinfo__datapoints__value__contains"] = request.GET[tag]
                 if tagwords[1] == 'specification':
                     if tagwords[2] == 'name':
@@ -396,7 +419,7 @@ def projects_view_user(request):
         paginatorobj = datapointsrows
     paginator = Paginator(paginatorobj, page_length)
     page_obj = paginator.get_page(page_num)
-    return render(request, 'ui_new/user/projects/projects_new.html', dict(analysis_type = analysis_type, datapointtypes = datapointtypes, patientdpts = patientdpts, sampledpts = sampledpts, page_obj = page_obj, project_redirect = project_redirect, first_project_id = first_project_id, page_length = page_length))
+    return render(request, 'ui_new/user/projects/projects_new.html', dict(analysis_type = analysis_type, datapointtypes = datapointtypes, patientdptypes = patientdptypes, sampledptypes = sampledptypes, page_obj = page_obj, project_redirect = project_redirect, first_project_id = first_project_id, page_length = page_length))
 
 
 # new
