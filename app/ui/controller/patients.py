@@ -8,6 +8,7 @@ from django.views.decorators.http import require_http_methods
 from django.core.paginator import Paginator
 
 import uuid, json
+import re
 
 import operator
 from django.db.models import Q
@@ -45,6 +46,11 @@ def patients_view_user(request, project_pk):
     for tag in request.GET:
         if tag.startswith('tag.'):
             tagwords = tag.split(".")
+            # allowed values
+            if not bool(re.match("^[A-Za-z0-9,._ ]*$", tag)) or not bool(re.match("^[A-Za-z0-9,._ ]*$", request.GET[tag])):
+                messages.error(request, "Only A-Za-z0-9,. _ are allowed in filtering request")
+                return HttpResponseRedirect(reverse("patients_view_user", kwargs = dict(project_pk = project_pk)))
+            #
             if tagwords[1] == 'projectid':
                 if tagwords[2] == 'projectid':
                     filterdict["projectid__contains"] = request.GET[tag]

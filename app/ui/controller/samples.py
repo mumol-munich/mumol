@@ -13,6 +13,7 @@ from django.db.models import Q
 from functools import reduce
 
 import json
+import re
 
 from ..models import Project, Sample, Patient, ProjectId, SampleInfo, SampleDPTs, SampleDatapoint, PatientInfo, SampleInfo, PatientDatapoint, SampleDatapoint, PatientDPTs
 from ..forms import SampleAddForm, PatientAddForm, ProjectIdAddForm
@@ -41,6 +42,11 @@ def samples_view_user(request, project_pk):
         for tag in request.GET:
             if tag.startswith('tag.'):
                 tagwords = tag.split(".")
+                # allowed values
+                if not bool(re.match("^[A-Za-z0-9,._ ]*$", tag)) or not bool(re.match("^[A-Za-z0-9,._ ]*$", request.GET[tag])):
+                    messages.error(request, "Only A-Za-z0-9,. _ are allowed in filtering request")
+                    return HttpResponseRedirect(reverse("samples_view_user", kwargs = dict(project_pk = project_pk)))
+                #
                 if tagwords[1] == 'sample':
                     # dateofreceipt = request.GET[tag].split(" ")[0].split(".")
                     # samples = samples.filter(reduce(operator.and_, (Q(dateofreceipt__contains = int(dor)) for dor in dateofreceipt)))
