@@ -3,7 +3,17 @@
 <h4 class='mb-3'>Register Patient Sample</h4>
 <form method="post" action="{% url 'samples_overview_add_remove' project_pk %}" id="custom_patient_sample_form">
     {% csrf_token %}
-    {{formpatient | crispy}}
+    
+    {# {{formpatient | crispy}} #}
+    {{formpatient.firstname | as_crispy_field}}
+    {{formpatient.lastname | as_crispy_field}}
+
+    <div id="div_id_dateofbirth" class="form-group"> <label for="id_dateofbirth" class=" requiredField">
+        Date of Birth<span class="asteriskField">*</span> </label> <div class="">
+            <input type="text" name="dateofbirth" placeholder="DD/MM/YYYY" class="dateinput form-control" required="" id="id_dateofbirth" pattern="(0[1-9]|1[0-9]|2[0-9]|3[01]).(0[1-9]|1[012]).[0-9]{4}">
+        </div> 
+    </div>
+
     <div class="form-group">
         {{formprojectid.projectid | as_crispy_field}}
         <small class="red-text">If project id is not specified, an unique id is assigned automatically</small>
@@ -16,8 +26,15 @@
 
     <hr>
 
-    {{formsample | crispy}}
-
+    {# {{formsample | crispy}} #}
+    <div id="div_id_dateofreceipt" class="form-group"> <label for="id_dateofreceipt" class=" requiredField">
+        Date of Entry<span class="asteriskField">*</span> </label> <div class="">
+            <!-- <input type="date" name="dateofreceipt" placeholder="YYYY-MM-DD" class="dateinput form-control form-control-sm" required="" id="id_dateofreceipt"> -->
+            <input type="text" name="dateofreceipt" placeholder="DD/MM/YYYY" class="dateinput form-control form-control-sm" required="" id="id_dateofreceipt" pattern="(0[1-9]|1[0-9]|2[0-9]|3[01]).(0[1-9]|1[012]).[0-9]{4}">
+        </div> 
+    </div>
+    {{formsample.visit | as_crispy_field}}
+    
     <div class="form-group">
         {% include 'ui_new/user/patients/samplespec_form.html' %}
         <input type="hidden" id="customsam_pks" name="customsam_pks" value="[]">

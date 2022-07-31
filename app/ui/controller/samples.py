@@ -122,6 +122,14 @@ def samples_overview_add_remove(request, project_pk):
     if access_type == 'add':
         # add sample
         firstname, lastname, dateofbirth, projectid_val, dateofreceipt, visit = request.POST.get('firstname'), request.POST.get('lastname'), request.POST.get('dateofbirth'), request.POST.get('projectid'), request.POST.get('dateofreceipt'), request.POST.get('visit')
+        # convert dob
+        dateofbirth = dateofbirth.split("/")
+        dateofbirth.reverse()
+        dateofbirth = "-".join(dateofbirth)
+        dateofreceipt = dateofreceipt.split("/")
+        dateofreceipt.reverse()
+        dateofreceipt = "-".join(dateofreceipt)
+        #
         patient_new = False
         # return HttpResponse(json.dumps(request.POST))
         # get patient
@@ -304,6 +312,11 @@ def samples_add_remove(request):
     access_type = request.POST.get('access_type')
     if access_type == 'add':
         projectid_pk, dateofreceipt, visit = request.POST.get('projectid_pk'), request.POST.get('dateofreceipt'), request.POST.get('visit')
+        # convert dob
+        dateofreceipt = dateofreceipt.split("/")
+        dateofreceipt.reverse()
+        dateofreceipt = "-".join(dateofreceipt)
+        #
         # return HttpResponse(json.dumps(request.POST))
         try:
             project = Project.objects.get(projectid_project__pk = projectid_pk)
