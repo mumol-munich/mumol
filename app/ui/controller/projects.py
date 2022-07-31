@@ -19,6 +19,7 @@ from ..functions import fn_convert_genespec_json, fn_auth_project_user, fn_genea
 
 import json
 from datetime import datetime
+import re
 
 import csv
 from django.http import StreamingHttpResponse
@@ -292,6 +293,11 @@ def projects_view_user(request):
         for tag in request.GET:
             if tag.startswith('tag.'):
                 tagwords = tag.split(".")
+                # allowed values
+                if not bool(re.match("^[A-Za-z0-9,._ ]*$", tag)) or not bool(re.match("^[A-Za-z0-9,._ ]*$", request.GET[tag])):
+                    messages.error(request, "Only A-Za-z0-9,. _ are allowed in filtering request")
+                    return HttpResponseRedirect(reverse("projects_view_user"))
+                #
                 if tagwords[1] == 'project':
                     filterdict["geneanalysis_datapointsrows__specification__project__name__contains"] = request.GET[tag]
                 if tagwords[1] == 'projectid':
@@ -346,6 +352,11 @@ def projects_view_user(request):
         for tag in request.GET:
             if tag.startswith('tag.'):
                 tagwords = tag.split(".")
+                # allowed values
+                if not bool(re.match("^[A-Za-z0-9,._ ]*$", tag)) or not bool(re.match("^[A-Za-z0-9,._ ]*$", request.GET[tag])):
+                    messages.error(request, "Only A-Za-z0-9,. _ are allowed in filtering request")
+                    return HttpResponseRedirect(reverse("projects_view_user"))
+                #
                 if tagwords[1] == 'project':
                     filterdict["chipsetanalysis_datapointsrows__chipsetspec__project__name__contains"] = request.GET[tag]
                 if tagwords[1] == 'projectid':
@@ -397,7 +408,7 @@ def projects_view_user(request):
                                 chipf.add(chipn, Q.AND)
                         if chipinfo:
                             chipinfo = [c.replace('version:', '').replace('manufacturer:', '').split(")")[0].strip() for c in chipinfo]
-                            print(chipinfo)
+                            # print(chipinfo)
                             chipv = reduce(operator.or_, (Q(chipsetanalysis_datapointsrows__chipsetspec__version = v) for v in chipinfo))
                             chipf2 = Q()
                             if chipv:
