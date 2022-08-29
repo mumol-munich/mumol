@@ -129,7 +129,8 @@ class PatientAddForm(ModelForm):
         model = Patient
         fields = '__all__'
         widgets = {
-            'dateofbirth': forms.DateInput(attrs={'placeholder': 'YYYY-MM-DD', 'type': 'date'}),
+            # 'dateofbirth': forms.DateInput(attrs={'placeholder': 'YYYY-MM-DD', 'type': 'date'}),
+            'dateofbirth': forms.DateInput(attrs={'placeholder': 'DD/MM/YYYY', 'type': 'date'}),
         }
 
 class ProjectIdAddForm(ModelForm):
@@ -148,7 +149,8 @@ class SampleAddForm(ModelForm):
         # fields = ('dateofreceipt', 'mutation', 'type', 'location', 'icd10')
         fields = ('dateofreceipt', 'visit',)
         widgets = {
-            'dateofreceipt': forms.DateInput(attrs={'placeholder': 'YYYY-MM-DD', 'type': 'date'})
+            # 'dateofreceipt': forms.DateInput(attrs={'placeholder': 'YYYY-MM-DD', 'type': 'date'})
+            'dateofreceipt': forms.DateInput(attrs={'placeholder': 'DD/MM/YYYY', 'type': 'date'})
         }
         # labels = dict(mutation = 'Mutation Burden', dateofreceipt = 'Date of Entry', icd10 = 'ICD10')
         labels = dict(dateofreceipt = 'Date of Entry', visit = 'Visit of the day')
