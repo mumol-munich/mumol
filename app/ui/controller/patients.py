@@ -91,7 +91,8 @@ def patients_add_remove(request, project_pk):
     if access_type == 'add':
         firstname, lastname, dateofbirth, projectid_val = request.POST.get('firstname'), request.POST.get('lastname'), request.POST.get('dateofbirth'), request.POST.get('projectid')
         # convert dob
-        dateofbirth = dateofbirth.split("/")
+        # dateofbirth = dateofbirth.split("/")
+        dateofbirth = dateofbirth.split(".")
         dateofbirth.reverse()
         dateofbirth = "-".join(dateofbirth)
         #

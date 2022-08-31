@@ -129,10 +129,12 @@ def samples_overview_add_remove(request, project_pk):
         # add sample
         firstname, lastname, dateofbirth, projectid_val, dateofreceipt, visit = request.POST.get('firstname'), request.POST.get('lastname'), request.POST.get('dateofbirth'), request.POST.get('projectid'), request.POST.get('dateofreceipt'), request.POST.get('visit')
         # convert dob
-        dateofbirth = dateofbirth.split("/")
+        # dateofbirth = dateofbirth.split("/")
+        dateofbirth = dateofbirth.split(".")
         dateofbirth.reverse()
         dateofbirth = "-".join(dateofbirth)
-        dateofreceipt = dateofreceipt.split("/")
+        # dateofreceipt = dateofreceipt.split("/")
+        dateofreceipt = dateofreceipt.split(".")
         dateofreceipt.reverse()
         dateofreceipt = "-".join(dateofreceipt)
         #
@@ -319,7 +321,8 @@ def samples_add_remove(request):
     if access_type == 'add':
         projectid_pk, dateofreceipt, visit = request.POST.get('projectid_pk'), request.POST.get('dateofreceipt'), request.POST.get('visit')
         # convert dob
-        dateofreceipt = dateofreceipt.split("/")
+        # dateofreceipt = dateofreceipt.split("/")
+        dateofreceipt = dateofreceipt.split(".")
         dateofreceipt.reverse()
         dateofreceipt = "-".join(dateofreceipt)
         #

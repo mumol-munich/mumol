@@ -130,7 +130,7 @@ class PatientAddForm(ModelForm):
         fields = '__all__'
         widgets = {
             # 'dateofbirth': forms.DateInput(attrs={'placeholder': 'YYYY-MM-DD', 'type': 'date'}),
-            'dateofbirth': forms.DateInput(attrs={'placeholder': 'DD/MM/YYYY', 'type': 'date'}),
+            'dateofbirth': forms.DateInput(attrs={'placeholder': 'DD.MM.YYYY', 'type': 'date'}),
         }
 
 class ProjectIdAddForm(ModelForm):
